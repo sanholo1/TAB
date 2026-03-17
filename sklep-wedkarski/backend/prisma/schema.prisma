@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Adres {
+  id_adres     Int          @id @default(autoincrement())
+  kraj         String       @db.VarChar(191)
+  miasto       String       @db.VarChar(191)
+  kod_pocztowy String       @db.VarChar(191)
+  ulica        String       @db.VarChar(191)
+  nr_domu      String       @db.VarChar(191)
+  transakcje   Transakcja[]
+}
+
+model Rola {
+  id_roli      Int           @id @default(autoincrement())
+  nazwa        String        @db.VarChar(191)
+  uzytkownicy  Uzytkownik[]
+}
+
+model Uzytkownik {
+  id_uzytkownika Int                  @id @default(autoincrement())
+  nazwa          String               @db.VarChar(191)
+  imie           String               @db.VarChar(191)
+  nazwisko       String               @db.VarChar(191)
+  email          String               @db.VarChar(191)
+  haslo          String               @db.VarChar(191)
+  id_roli        Int
+  rola           Rola                 @relation(fields: [id_roli], references: [id_roli])
+  koszyk         Koszyk[]
+  opinie         Opinia[]
+  transakcje     Transakcja[]
+
+  @@index([id_roli])
+}
+
+model Kategoria {
+  id_kategorii Int          @id @default(autoincrement())
+  nazwa        String       @db.VarChar(191)
+  przedmioty   Przedmioty[]
+}
+
+model Przedmioty {
+  id_przedmiotu         Int                    @id @default(autoincrement())
+  nazwa                 String                 @db.VarChar(191)
+  opis                  String?                @db.Text
+  cena_sprzedazy        Decimal                @db.Decimal(10, 2)
+  id_kategorii          Int
+  cena_prom             Decimal?               @db.Decimal(10, 2)
+  id_przedmiotu_parent  Int?
+  ilosc                 Int
+  cena_zakupu           Decimal                @db.Decimal(10, 2)
+  kategoria             Kategoria              @relation(fields: [id_kategorii], references: [id_kategorii])
+  parent_przedmiot      Przedmioty?            @relation("PrzedmiotSelf", fields: [id_przedmiotu_parent], references: [id_przedmiotu])
+  child_przedmioty      Przedmioty[]           @relation("PrzedmiotSelf")
+  koszyk                Koszyk[]
+  opinie                Opinia[]
+  pozycje_transakcji    Przedmioty_transakcji[]
+
+  @@index([id_kategorii])
+  @@index([id_przedmiotu_parent])
+}
+
+model Koszyk {
+  id_przedmiotu   Int
+  id_uzytkownika  Int
+  ilosc           Int
+  przedmiot       Przedmioty   @relation(fields: [id_przedmiotu], references: [id_przedmiotu])
+  uzytkownik      Uzytkownik   @relation(fields: [id_uzytkownika], references: [id_uzytkownika])
+
+  @@id([id_przedmiotu, id_uzytkownika])
+  @@index([id_uzytkownika])
+}
+
+model Opinia {
+  id_opinia       Int         @id @default(autoincrement())
+  id_uzytkownika  Int
+  id_produktu     Int
+  ocena           Int
+  komentarz       String?     @db.Text
+  uzytkownik      Uzytkownik  @relation(fields: [id_uzytkownika], references: [id_uzytkownika])
+  produkt         Przedmioty  @relation(fields: [id_produktu], references: [id_przedmiotu])
+
+  @@index([id_uzytkownika])
+  @@index([id_produktu])
+}
+
+model Transakcja {
+  id_transakcji      Int                     @id @default(autoincrement())
+  id_uzytkownika     Int
+  kwota_calkowita    Decimal                 @db.Decimal(10, 2)
+  stan               String                  @db.VarChar(191)
+  data               String                  @db.VarChar(191)
+  id_adres           Int
+  uzytkownik         Uzytkownik              @relation(fields: [id_uzytkownika], references: [id_uzytkownika])
+  adres              Adres                   @relation(fields: [id_adres], references: [id_adres])
+  przedmioty         Przedmioty_transakcji[]
+
+  @@index([id_uzytkownika])
+  @@index([id_adres])
+}
+
+model Przedmioty_transakcji {
+  id_transakcji   Int
+  id_przedmiotu   Int
+  liczba          Int
+  cena_przedmiotu Decimal     @db.Decimal(10, 2)
+  transakcja      Transakcja  @relation(fields: [id_transakcji], references: [id_transakcji])
+  przedmiot       Przedmioty  @relation(fields: [id_przedmiotu], references: [id_przedmiotu])
+
+  @@id([id_transakcji, id_przedmiotu])
+  @@index([id_przedmiotu])
+}
