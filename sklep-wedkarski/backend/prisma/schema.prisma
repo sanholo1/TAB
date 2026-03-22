@@ -52,18 +52,14 @@ model Przedmioty {
   cena_sprzedazy        Decimal                @db.Decimal(10, 2)
   id_kategorii          Int
   cena_prom             Decimal?               @db.Decimal(10, 2)
-  id_przedmiotu_parent  Int?
   ilosc                 Int
   cena_zakupu           Decimal                @db.Decimal(10, 2)
   kategoria             Kategoria              @relation(fields: [id_kategorii], references: [id_kategorii])
-  parent_przedmiot      Przedmioty?            @relation("PrzedmiotSelf", fields: [id_przedmiotu_parent], references: [id_przedmiotu])
-  child_przedmioty      Przedmioty[]           @relation("PrzedmiotSelf")
   koszyk                Koszyk[]
   opinie                Opinia[]
   pozycje_transakcji    Przedmioty_transakcji[]
 
   @@index([id_kategorii])
-  @@index([id_przedmiotu_parent])
 }
 
 model Koszyk {
@@ -80,14 +76,14 @@ model Koszyk {
 model Opinia {
   id_opinia       Int         @id @default(autoincrement())
   id_uzytkownika  Int
-  id_produktu     Int
+  id_przedmiotu   Int
   ocena           Int
   komentarz       String?     @db.Text
   uzytkownik      Uzytkownik  @relation(fields: [id_uzytkownika], references: [id_uzytkownika])
-  produkt         Przedmioty  @relation(fields: [id_produktu], references: [id_przedmiotu])
+  produkt         Przedmioty  @relation(fields: [id_przedmiotu], references: [id_przedmiotu])
 
   @@index([id_uzytkownika])
-  @@index([id_produktu])
+  @@index([id_przedmiotu])
 }
 
 model Transakcja {
