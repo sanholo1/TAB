@@ -30,7 +30,7 @@ Będziecie mieli testowego uzytkownika produkt, kategorie, koszyk i role.
 
 ---
 
-## Struktura i podział ról w zespole
+## Struktura
 
 ### Backend (Katalog `backend/`)
 Zbudowany w architekturze MVC (Routes -> Controllers -> Services). Dostosuje się do struktury zrobionej przez Sanholo. To jest tylko szkielet.
