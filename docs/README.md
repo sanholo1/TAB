@@ -59,5 +59,4 @@ Jest tam surowy szkielet graficzny, trzeba go ładniej zrobić. Dodać wstawiani
 - [ ] **Opinie**: Na stronie `ProductDetailPage.tsx` dodaj prosty formularz na ocenę i komentarz. Podepnij pod niego przygotowaną funkcję `addProductReview()`.
 - [ ] **Koszyk**: Pod przycisk "Dodaj do koszyka" podepnij nową funkcję `addToCart()`. (System będzie wrzucał itemy na sztywno do konta usera ID=1 dopóki chłopaki nie skończą systemu logowania).
 - [ ] **Co Chcesz**: Zrób to co chcesz, pisz dc jak coś nie trybi.
-
-Trzymaj się swojego folderu `products/`.
+- [ ] 
