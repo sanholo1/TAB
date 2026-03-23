@@ -1,5 +1,4 @@
-// Types for Paweł – product page frontend
-// Mirrors the backend Prisma schema
+
 
 export interface Product {
   id_przedmiotu: number;

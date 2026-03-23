@@ -67,7 +67,7 @@ export const getProductReviews = async (req: Request, res: Response) => {
 export const addProductReview = async (req: Request, res: Response) => {
   try {
     const { rating, comment } = req.body;
-    const userId = 1; // TODO: Kuba K - zmienić na req.user po dodaniu autoryzacji
+    const userId = 1; // TODO: Zmienić userId 1 na req.user po dodaniu autoryzacji
     
     if (!rating || rating < 1 || rating > 5) {
       return res.status(400).json({ error: "Rating must be between 1 and 5" });

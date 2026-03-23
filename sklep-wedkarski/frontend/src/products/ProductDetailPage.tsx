@@ -67,7 +67,7 @@ export default function ProductDetailPage() {
           </div>
           
           <button 
-            onClick={() => alert("TODO: endpoint koszyka (Janek)")} 
+            onClick={() => alert("TODO: Wpierdol tu koszyk")} 
             disabled={product.ilosc <= 0}
             className={`p-3 font-bold border ${product.ilosc > 0 ? 'bg-blue-100 border-blue-400' : 'bg-gray-200 border-gray-400 text-gray-500'}`}
           >

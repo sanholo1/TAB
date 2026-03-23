@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import * as CartService from "../services/cart.service.js";
 
-// TODO: Kuba K - zmienić mock userId 1 na req.user po dodaniu autoryzacji
+// TODO: Zmienić userId 1 na req.user po dodaniu autoryzacji
 
 export const getCart = async (req: Request, res: Response) => {
   try {

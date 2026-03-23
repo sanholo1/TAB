@@ -11,7 +11,7 @@ router.delete("/:id", ProductsController.deleteProduct);
 
 // Opinie
 router.get("/:id/reviews", ProductsController.getProductReviews);
-router.post("/:id/reviews", ProductsController.addProductReview); // NOWE
+router.post("/:id/reviews", ProductsController.addProductReview);
 
 // Promocja
 router.put("/:id/promotion", ProductsController.setPromotion);

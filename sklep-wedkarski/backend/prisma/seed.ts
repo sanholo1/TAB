@@ -2,7 +2,6 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
-  // 1. Dodaj testową kategorię
   const kategoria = await prisma.kategoria.upsert({
     where: { id_kategorii: 1 },
     update: {},
@@ -12,7 +11,6 @@ async function main() {
     },
   });
 
-  // 2. Dodaj testowy produkt
   const produkt = await prisma.przedmioty.upsert({
     where: { id_przedmiotu: 1 },
     update: {},
@@ -27,7 +25,6 @@ async function main() {
     },
   });
 
-  // 3. Dodaj testową rolę
   const rola = await prisma.rola.upsert({
     where: { id_roli: 1 },
     update: {},
@@ -37,7 +34,6 @@ async function main() {
     },
   });
 
-  // 4. Dodaj testowego użytkownika
   const user = await prisma.uzytkownik.upsert({
     where: { id_uzytkownika: 1 },
     update: {},
@@ -52,7 +48,6 @@ async function main() {
     },
   });
 
-  // 5. Dodaj produkt do koszyka testowego użytkownika
   const koszyk = await prisma.koszyk.upsert({
     where: {
       id_przedmiotu_id_uzytkownika: {

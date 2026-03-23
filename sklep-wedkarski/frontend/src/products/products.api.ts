@@ -1,11 +1,10 @@
-// API service for Paweł – ready-made fetch functions to the backend
-// Paweł only imports these, no need to know the endpoint details
+
 
 import type { Product, Category, Review } from "./products.types";
 
 const BASE_URL = "http://localhost:3000";
 
-// GET /products  (optional filters)
+// GET /products 
 export async function fetchProducts(params?: {
   id_kategorii?: number;
   minCena?: number;
