@@ -55,7 +55,6 @@ Jest tam surowy szkielet graficzny, trzeba go ładniej zrobić. Dodać wstawiani
 ### Twoje TODO:
 - [ ] **Design**: Zrób to ładnie, usuń ramki, dodaj kolory, obrazki, poprawne marginesy.
 - [ ] **Wyświetlanie Obrazków**: Podmień tymczasowe placeholdery tekstowe i SVG na tagi `<img>` uderzające we właściwy format pliku.
-- [ ] **Filtrowanie Ceny**: W `ProductsPage.tsx` po lewej stronie dorobiony jest szkielet na wpisanie ceny Min/Max. Musisz podpiąć pod to stan (np. `useState`) i wywoływać `fetchProducts({ minCena: X, maxCena: Y })`.
 - [ ] **Opinie**: Na stronie `ProductDetailPage.tsx` dodaj prosty formularz na ocenę i komentarz. Podepnij pod niego przygotowaną funkcję `addProductReview()`.
 - [ ] **Koszyk**: Pod przycisk "Dodaj do koszyka" podepnij nową funkcję `addToCart()`. (System będzie wrzucał itemy na sztywno do konta usera ID=1 dopóki chłopaki nie skończą systemu logowania).
 - [ ] **Co Chcesz**: Zrób to co chcesz, pisz dc jak coś nie trybi.
