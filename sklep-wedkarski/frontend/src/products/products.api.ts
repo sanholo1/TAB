@@ -1,18 +1,19 @@
-
-
 import type { Product, Category, Review } from "./products.types";
 
 const BASE_URL = "http://localhost:3000";
 
 // GET /products 
 export async function fetchProducts(params?: {
-  id_kategorii?: number;
-  minCena?: number;
-  maxCena?: number;
+  category?: number;
+  min_price?: number;
+  max_price?: number;
 }): Promise<Product[]> {
-  const query = params
-    ? new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)])).toString()
-    : "";
+  const queryParams: any = {};
+  if (params?.category) queryParams.category = params.category;
+  if (params?.min_price) queryParams.min_price = params.min_price;
+  if (params?.max_price) queryParams.max_price = params.max_price;
+
+  const query = new URLSearchParams(queryParams).toString();
   const res = await fetch(`${BASE_URL}/products${query ? "?" + query : ""}`);
   if (!res.ok) throw new Error("Failed to fetch products");
   return res.json();
@@ -44,7 +45,10 @@ export async function addProductReview(id: number, data: { rating: number, comme
   const res = await fetch(`${BASE_URL}/products/${id}/reviews`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
+    body: JSON.stringify({
+      ocena: data.rating,
+      komentarz: data.comment
+    })
   });
   if (!res.ok) throw new Error("Failed to add review");
   return res.json();

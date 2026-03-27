@@ -1,9 +1,13 @@
 import { Request, Response } from "express";
 import * as ProductService from "../services/products.service.js";
 
-export const getAllProducts = async (_req: Request, res: Response) => {
+export const getAllProducts = async (req: Request, res: Response) => {
     try {
-        const products = await ProductService.getAllProducts();
+        const categoryId = req.query.category ? Number(req.query.category) : undefined;
+        const minPrice = req.query.min_price ? Number(req.query.min_price) : undefined;
+        const maxPrice = req.query.max_price ? Number(req.query.max_price) : undefined;
+
+        const products = await ProductService.getAllProducts(categoryId, minPrice, maxPrice);
         res.json(products);
     } catch (error) {
         res.status(500).json({ error: "Failed to fetch products" });

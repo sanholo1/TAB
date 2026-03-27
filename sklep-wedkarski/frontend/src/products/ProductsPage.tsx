@@ -6,17 +6,39 @@ import type { Product, Category } from "./products.types";
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   
-  // Np. /products?kategoria=1
-  const categoryIdParam = searchParams.get("kategoria");
+  const categoryIdParam = searchParams.get("category");
+  const minPriceParam = searchParams.get("min_price");
+  const maxPriceParam = searchParams.get("max_price");
+
+  const [minPriceInput, setMinPriceInput] = useState(minPriceParam || "");
+  const [maxPriceInput, setMaxPriceInput] = useState(maxPriceParam || "");
 
   useEffect(() => {
-    fetchProducts(categoryIdParam ? { id_kategorii: Number(categoryIdParam) } : undefined)
+    fetchProducts({
+      category: categoryIdParam ? Number(categoryIdParam) : undefined,
+      min_price: minPriceParam ? Number(minPriceParam) : undefined,
+      max_price: maxPriceParam ? Number(maxPriceParam) : undefined,
+    })
       .then(setProducts)
       .catch(console.error);
+  }, [categoryIdParam, minPriceParam, maxPriceParam]);
+
+  useEffect(() => {
     fetchCategories().then(setCategories).catch(console.error);
-  }, [categoryIdParam]);
+  }, []);
+
+  const handlePriceFilter = () => {
+    const newParams = new URLSearchParams(searchParams);
+    if (minPriceInput) newParams.set("min_price", minPriceInput);
+    else newParams.delete("min_price");
+    
+    if (maxPriceInput) newParams.set("max_price", maxPriceInput);
+    else newParams.delete("max_price");
+    
+    setSearchParams(newParams);
+  };
 
   return (
     <div className="p-4 border border-dashed border-gray-400 min-h-screen">
@@ -35,7 +57,7 @@ export default function ProductsPage() {
             </li>
             {categories.map((cat) => (
               <li key={cat.id_kategorii}>
-                <Link to={`/products?kategoria=${cat.id_kategorii}`} className="text-blue-600 underline">
+                <Link to={`/products?category=${cat.id_kategorii}`} className="text-blue-600 underline">
                   {cat.nazwa}
                 </Link>
               </li>
@@ -44,10 +66,27 @@ export default function ProductsPage() {
           
           <h2 className="font-bold mb-2">Cena</h2>
           <div className="flex gap-2 mb-2">
-            <input type="number" placeholder="Min" className="border w-full p-1" />
-            <input type="number" placeholder="Max" className="border w-full p-1" />
+            <input 
+              type="number" 
+              placeholder="Min" 
+              className="border w-full p-1" 
+              value={minPriceInput}
+              onChange={(e) => setMinPriceInput(e.target.value)}
+            />
+            <input 
+              type="number" 
+              placeholder="Max" 
+              className="border w-full p-1" 
+              value={maxPriceInput}
+              onChange={(e) => setMaxPriceInput(e.target.value)}
+            />
           </div>
-          <button className="border bg-gray-200 px-4 py-1 w-full">Zastosuj</button>
+          <button 
+            className="border bg-gray-200 px-4 py-1 w-full"
+            onClick={handlePriceFilter}
+          >
+            Zastosuj
+          </button>
         </aside>
 
         {/* Prawa strona - Lista produktów w siatce */}

@@ -1,7 +1,19 @@
 import { prisma } from "../prismaClient.js";
 
-export const getAllProducts = async () => {
-    return prisma.przedmioty.findMany();
+export const getAllProducts = async (id_category?: number, min_price?: number, max_price?: number) => {
+    const where: any = {};
+
+    if (id_category !== undefined) {
+        where.id_kategorii = id_category;
+    }
+
+    if (min_price !== undefined || max_price !== undefined) {
+        where.cena_sprzedazy = {};
+        if (min_price !== undefined) where.cena_sprzedazy.gte = min_price;
+        if (max_price !== undefined) where.cena_sprzedazy.lte = max_price;
+    }
+
+    return prisma.przedmioty.findMany({ where });
 };
 
 export const getProductById = async (id: number) => {
@@ -37,4 +49,4 @@ export const addProductReview = async (productId: number, userId: number, rating
       komentarz: comment
     }
   });
-};
+};  

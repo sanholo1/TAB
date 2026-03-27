@@ -1,5 +1,4 @@
 
-
 export interface Product {
   id_przedmiotu: number;
   nazwa: string;
