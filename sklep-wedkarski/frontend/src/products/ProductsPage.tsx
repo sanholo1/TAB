@@ -18,6 +18,12 @@ export default function ProductsPage() {
   const [maxPriceInput, setMaxPriceInput] = useState(maxPriceParam || "");
   const [searchInput, setSearchInput] = useState(searchParam || "");
 
+  const priceOptions = [
+    { label: "do 50 zł", value: "low" },
+    { label: "50-200 zł", value: "mid" },
+    { label: "powyżej 200 zł", value: "high" },
+  ];
+
   useEffect(() => {
     fetchProducts({
       search: searchParam ?? undefined,
@@ -36,12 +42,24 @@ export default function ProductsPage() {
 
   const handlePriceFilter = () => {
     const newParams = new URLSearchParams(searchParams);
+    newParams.delete("price");
     if (minPriceInput) newParams.set("min_price", minPriceInput);
     else newParams.delete("min_price");
     
     if (maxPriceInput) newParams.set("max_price", maxPriceInput);
     else newParams.delete("max_price");
     
+    setSearchParams(newParams);
+  };
+
+  const handlePresetPriceChange = (value: string) => {
+    const newParams = new URLSearchParams(searchParams);
+    if (priceParam === value) newParams.delete("price");
+    else newParams.set("price", value);
+    newParams.delete("min_price");
+    newParams.delete("max_price");
+    setMinPriceInput("");
+    setMaxPriceInput("");
     setSearchParams(newParams);
   };
 
@@ -57,7 +75,6 @@ export default function ProductsPage() {
     <div className="p-4 border border-dashed border-gray-400 min-h-screen">
       <header className="mb-4 pb-2 border-b border-gray-300">
         <h1 className="text-2xl font-bold">Produkty (Szkielet Układu)</h1>
-        <p className="text-sm text-gray-500">Strona sklepu (dla danej kategorii lub wszystkich)</p>
         {searchParam && <p className="text-sm text-gray-500">Wyniki dla: <b>{searchParam}</b></p>}
       </header>
 
@@ -100,6 +117,17 @@ export default function ProductsPage() {
           </ul>
           
           <h2 className="font-bold mb-2">Cena</h2>
+          <div className="flex flex-col gap-2 mb-3">
+            {priceOptions.map((opt) => (
+              <button
+                key={opt.value}
+                className={priceParam === opt.value ? "active" : ""}
+                onClick={() => handlePresetPriceChange(opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
           <div className="flex gap-2 mb-2">
             <input 
               type="number" 
