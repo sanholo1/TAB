@@ -6,8 +6,16 @@ export const getAllProducts = async (req: Request, res: Response) => {
         const categoryId = req.query.category ? Number(req.query.category) : undefined;
         const minPrice = req.query.min_price ? Number(req.query.min_price) : undefined;
         const maxPrice = req.query.max_price ? Number(req.query.max_price) : undefined;
+        const search = typeof req.query.search === "string" ? req.query.search : undefined;
+        const price = typeof req.query.price === "string" ? req.query.price : undefined;
 
-        const products = await ProductService.getAllProducts(categoryId, minPrice, maxPrice);
+        const products = await ProductService.getAllProducts({
+            categoryId,
+            minPrice,
+            maxPrice,
+            search,
+            price,
+        });
         res.json(products);
     } catch (error) {
         res.status(500).json({ error: "Failed to fetch products" });
@@ -70,7 +78,8 @@ export const getProductReviews = async (req: Request, res: Response) => {
 
 export const addProductReview = async (req: Request, res: Response) => {
   try {
-    const { rating, comment } = req.body;
+        const rating = Number(req.body.rating ?? req.body.ocena);
+        const comment = (req.body.comment ?? req.body.komentarz ?? "") as string;
     const userId = 1; // TODO: Zmienić userId 1 na req.user po dodaniu autoryzacji
     
     if (!rating || rating < 1 || rating > 5) {

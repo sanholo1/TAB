@@ -1,16 +1,34 @@
 import { prisma } from "../prismaClient.js";
 
-export const getAllProducts = async (id_category?: number, min_price?: number, max_price?: number) => {
+type GetAllProductsParams = {
+    categoryId: number | undefined;
+    minPrice: number | undefined;
+    maxPrice: number | undefined;
+    search: string | undefined;
+    price: string | undefined;
+};
+
+export const getAllProducts = async ({ categoryId, minPrice, maxPrice, search, price }: GetAllProductsParams) => {
     const where: any = {};
 
-    if (id_category !== undefined) {
-        where.id_kategorii = id_category;
+    if (search) {
+        where.nazwa = {
+            contains: search,
+        };
     }
 
-    if (min_price !== undefined || max_price !== undefined) {
+    if (categoryId !== undefined) {
+        where.id_kategorii = categoryId;
+    }
+
+    if (minPrice !== undefined || maxPrice !== undefined) {
         where.cena_sprzedazy = {};
-        if (min_price !== undefined) where.cena_sprzedazy.gte = min_price;
-        if (max_price !== undefined) where.cena_sprzedazy.lte = max_price;
+        if (minPrice !== undefined) where.cena_sprzedazy.gte = minPrice;
+        if (maxPrice !== undefined) where.cena_sprzedazy.lte = maxPrice;
+    } else if (price) {
+        if (price === "low") where.cena_sprzedazy = { lt: 50 };
+        if (price === "mid") where.cena_sprzedazy = { gte: 50, lte: 200 };
+        if (price === "high") where.cena_sprzedazy = { gt: 200 };
     }
 
     return prisma.przedmioty.findMany({ where });

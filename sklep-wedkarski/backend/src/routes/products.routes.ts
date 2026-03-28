@@ -9,11 +9,11 @@ router.post("/", ProductsController.createProduct);
 router.put("/:id", ProductsController.updateProduct);
 router.delete("/:id", ProductsController.deleteProduct);
 
-// Opinie
+
 router.get("/:id/reviews", ProductsController.getProductReviews);
 router.post("/:id/reviews", ProductsController.addProductReview);
 
-// Promocja
+
 router.put("/:id/promotion", ProductsController.setPromotion);
 
 export default router;
