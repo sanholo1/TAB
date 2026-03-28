@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
 
 import Header from "./components/Header.tsx";
 import CategoryFilter from "./components/CategoryFilter.tsx";
+import PriceFilter from "./components/PriceFilter.tsx";
 import ProductsPage from "./products/ProductsPage";
 import ProductDetailPage from "./products/ProductDetailPage";
 
@@ -24,13 +25,15 @@ const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [selectedPrice, setSelectedPrice] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState<string>("");
 
-  const goToProducts = (options?: { category?: number | null; search?: string }) => {
+  const goToProducts = (options?: { category?: number | null; search?: string; price?: string | null }) => {
     const params = new URLSearchParams();
     const searchValue = options?.search?.trim();
     if (searchValue) params.set("search", searchValue);
     if (options?.category) params.set("category", String(options.category));
+    if (options?.price) params.set("price", options.price);
     const query = params.toString();
     navigate(`/products${query ? `?${query}` : ""}`);
   };
@@ -42,6 +45,7 @@ const DashboardPage: React.FC = () => {
     goToProducts({
       search: searchInput,
       category: selectedCategory,
+      price: selectedPrice,
     });
   };
 
@@ -51,6 +55,7 @@ const DashboardPage: React.FC = () => {
       goToProducts({
         category: categoryId,
         search: searchInput,
+        price: selectedPrice,
       });
     }
   };
@@ -78,6 +83,10 @@ const DashboardPage: React.FC = () => {
         categories={categories}
         selectedCategory={selectedCategory}
         setSelectedCategory={handleCategoryChange}
+      />
+      <PriceFilter
+        selectedPrice={selectedPrice}
+        setSelectedPrice={setSelectedPrice}
       />
     </div>
   );
