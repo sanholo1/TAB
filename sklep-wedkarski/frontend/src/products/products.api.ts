@@ -4,14 +4,18 @@ const BASE_URL = "http://localhost:3000";
 
 // GET /products 
 export async function fetchProducts(params?: {
+  search?: string;
   category?: number;
+  price?: string;
   min_price?: number;
   max_price?: number;
 }): Promise<Product[]> {
   const queryParams: any = {};
-  if (params?.category) queryParams.category = params.category;
-  if (params?.min_price) queryParams.min_price = params.min_price;
-  if (params?.max_price) queryParams.max_price = params.max_price;
+  if (params?.search) queryParams.search = params.search;
+  if (params?.category !== undefined) queryParams.category = params.category;
+  if (params?.price) queryParams.price = params.price;
+  if (params?.min_price !== undefined) queryParams.min_price = params.min_price;
+  if (params?.max_price !== undefined) queryParams.max_price = params.max_price;
 
   const query = new URLSearchParams(queryParams).toString();
   const res = await fetch(`${BASE_URL}/products${query ? "?" + query : ""}`);

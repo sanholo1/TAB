@@ -8,22 +8,27 @@ export default function ProductsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   
+  const searchParam = searchParams.get("search");
   const categoryIdParam = searchParams.get("category");
+  const priceParam = searchParams.get("price");
   const minPriceParam = searchParams.get("min_price");
   const maxPriceParam = searchParams.get("max_price");
 
   const [minPriceInput, setMinPriceInput] = useState(minPriceParam || "");
   const [maxPriceInput, setMaxPriceInput] = useState(maxPriceParam || "");
+  const [searchInput, setSearchInput] = useState(searchParam || "");
 
   useEffect(() => {
     fetchProducts({
+      search: searchParam ?? undefined,
       category: categoryIdParam ? Number(categoryIdParam) : undefined,
+      price: priceParam ?? undefined,
       min_price: minPriceParam ? Number(minPriceParam) : undefined,
       max_price: maxPriceParam ? Number(maxPriceParam) : undefined,
     })
       .then(setProducts)
       .catch(console.error);
-  }, [categoryIdParam, minPriceParam, maxPriceParam]);
+  }, [searchParam, categoryIdParam, priceParam, minPriceParam, maxPriceParam]);
 
   useEffect(() => {
     fetchCategories().then(setCategories).catch(console.error);
@@ -40,16 +45,46 @@ export default function ProductsPage() {
     setSearchParams(newParams);
   };
 
+  const handleSearchFilter = () => {
+    const newParams = new URLSearchParams(searchParams);
+    const value = searchInput.trim();
+    if (value) newParams.set("search", value);
+    else newParams.delete("search");
+    setSearchParams(newParams);
+  };
+
   return (
     <div className="p-4 border border-dashed border-gray-400 min-h-screen">
       <header className="mb-4 pb-2 border-b border-gray-300">
         <h1 className="text-2xl font-bold">Produkty (Szkielet Układu)</h1>
         <p className="text-sm text-gray-500">Strona sklepu (dla danej kategorii lub wszystkich)</p>
+        {searchParam && <p className="text-sm text-gray-500">Wyniki dla: <b>{searchParam}</b></p>}
       </header>
 
       <div className="flex flex-col md:flex-row gap-4">
         {/* Lewa strona - Filtry */}
-        <aside className="w-full md:w-64 border border-gray-300 p-4 bg-gray-50 flex-shrink-0">
+        <aside className="w-full md:w-64 border border-gray-300 p-4 flex-shrink-0">
+          <div className="mb-2">
+            <Link to="/" className="text-blue-600 underline">← Strona główna</Link>
+          </div>
+
+          <h2 className="font-bold mb-2">Wyszukiwanie</h2>
+          <div className="flex gap-2 mb-4">
+            <input
+              type="text"
+              placeholder="Szukaj produktu..."
+              className="border w-full p-1"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+            />
+            <button
+              className="border bg-gray-200 px-3 py-1"
+              onClick={handleSearchFilter}
+            >
+              Szukaj
+            </button>
+          </div>
+
           <h2 className="font-bold mb-2">Kategorie (Filtry)</h2>
           <ul className="space-y-1 mb-4">
             <li>

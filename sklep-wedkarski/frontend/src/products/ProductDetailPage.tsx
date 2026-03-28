@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { fetchProductById, fetchProductReviews, addToCart } from "./products.api";
+import { fetchProductById, fetchProductReviews } from "./products.api";
 import type { Product, Review } from "./products.types";
 
 export default function ProductDetailPage() {
@@ -8,6 +8,7 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+
 
   useEffect(() => {
     if (!id) return;
@@ -67,7 +68,7 @@ export default function ProductDetailPage() {
           </div>
           
           <button 
-            onClick={() => id && addToCart(product.id_przedmiotu, 1)} 
+            onClick={() => alert("TODO: Wpierdol tu koszyk")} 
             disabled={product.ilosc <= 0}
             className={`p-3 font-bold border ${product.ilosc > 0 ? 'bg-blue-100 border-blue-400' : 'bg-gray-200 border-gray-400 text-gray-500'}`}
           >
