@@ -1,0 +1,56 @@
+import prisma from "../prisma/prisma.js";
+import type { GetAllProductsParams } from "../types/products.js";
+
+export const getAllProducts = async ({ search, category, min_price, max_price, price }: GetAllProductsParams) => {
+  const where: any = {};
+
+  if (search) {
+    where.nazwa = { contains: search };
+  }
+
+  if (category !== undefined) {
+    where.id_kategorii = category;
+  }
+
+  if (min_price !== undefined || max_price !== undefined) {
+    where.cena_sprzedazy = {};
+    if (min_price !== undefined) where.cena_sprzedazy.gte = min_price;
+    if (max_price !== undefined) where.cena_sprzedazy.lte = max_price;
+  } else if (price) {
+    if (price === "low") where.cena_sprzedazy = { lt: 50 };
+    if (price === "mid") where.cena_sprzedazy = { gte: 50, lte: 200 };
+    if (price === "high") where.cena_sprzedazy = { gt: 200 };
+  }
+
+  return prisma.przedmioty.findMany({ where });
+};
+
+export const getProductById = async (id: number) => {
+  return prisma.przedmioty.findUnique({ where: { id_przedmiotu: id } });
+};
+
+export const createProduct = async (data: any) => {
+  return prisma.przedmioty.create({ data });
+};
+
+export const updateProduct = async (id: number, data: any) => {
+  return prisma.przedmioty.update({ where: { id_przedmiotu: id }, data });
+};
+
+export const deleteProduct = async (id: number) => {
+  return prisma.przedmioty.delete({ where: { id_przedmiotu: id } });
+};
+
+export const setPromotion = async (id: number, data: any) => {
+  return prisma.przedmioty.update({ where: { id_przedmiotu: id }, data });
+};
+
+export const getProductReviews = async (id: number) => {
+  return prisma.opinia.findMany({ where: { id_przedmiotu: id } });
+};
+
+export const addProductReview = async (productId: number, userId: number, rating: number, comment: string) => {
+  return prisma.opinia.create({
+    data: { id_przedmiotu: productId, id_uzytkownika: userId, ocena: rating, komentarz: comment },
+  });
+};
