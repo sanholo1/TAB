@@ -6,9 +6,7 @@ const router = Router();
 
 const GUEST_USER_ID = 1;
 
-/**
- * Pobiera userId z tokena (jeśli istnieje) lub zwraca ID gościa (1)
- */
+
 const getUserIdFromRequest = (req: Request): number => {
   try {
     const authHeader = req.headers.authorization;
@@ -17,22 +15,26 @@ const getUserIdFromRequest = (req: Request): number => {
     }
 
     const token = authHeader.split(" ")[1];
+    if (!token) {
+      return GUEST_USER_ID;
+    }
+
     const payload = verifyAuthToken(token);
     return payload.userId;
   } catch (error) {
-    // W razie błędu tokena (np. wygasły) traktujemy użytkownika jako gościa
+
     return GUEST_USER_ID;
   }
 };
 
-// GET /cart – pobiera koszyk zalogowanego użytkownika lub gościa
+
 router.get("/", async (req, res) => {
   const userId = getUserIdFromRequest(req);
   const cart = await getCart(userId);
   res.json(cart);
 });
 
-// POST /cart – dodaje przedmiot do koszyka (gość lub zalogowany)
+
 router.post("/", async (req, res) => {
   const userId = getUserIdFromRequest(req);
   const { id_przedmiotu, ilosc } = req.body;
