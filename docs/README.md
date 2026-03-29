@@ -6,7 +6,7 @@ Musisz uruchomić dwa terminale i odpalić.
 
 **Terminal 1 (Backend - API):**
 ```bash
-cd backend
+cd sklep-wedkarski/backend
 npm install
 npm run dev
 ```
@@ -14,7 +14,7 @@ Backend domyślnie: `http://localhost:3000`
 
 **Terminal 2 (Frontend - Aplikacja kliencka):**
 ```bash
-cd frontend
+cd sklep-wedkarski/frontend
 npm install
 npm run dev
 ```
@@ -24,11 +24,12 @@ Frontend domyślnie: `http://localhost:5173`
 
 ## Baza danych i dane testowe
 
-Jak chcecie dane testowe to w terminalu wpiszcie w /backend:
+Jak chcecie dane testowe, to w terminalu wpiszcie:
 ```bash
+cd sklep-wedkarski/backend
 npm run prisma:seed
 ```
-Będziecie mieli testowego uzytkownika produkt, kategorie, koszyk i role.
+Będziecie mieli testowego użytkownika, produkt, kategorię, koszyk i role.
 
 ---
 
@@ -39,8 +40,8 @@ Zbudowany w architekturze modularnej (**Routes -> Services -> Prisma Client**). 
 
 ### Frontend (Katalog `frontend/`)
 Zbudowany w oparciu o komponenty i foldery funkcyjne. W pełni zintegrowany z nowym backendem.
-Strkura plikow ludzie z frontu też możecie ustawić pod siebie.
-W produktach jest zrobione API, typy, strona główn prduktow i strona detalu. 
+Struktura plików — ludzie z frontu też możecie ustawić pod siebie.
+W produktach jest zrobione API, typy, strona główna produktów i strona detalu.
 Jest tam surowy szkielet graficzny, trzeba go ładniej zrobić. Dodać wstawianie opinii, dodawanie do koszyka, filtrowanie cen. 
 
 ### Postępy prac:

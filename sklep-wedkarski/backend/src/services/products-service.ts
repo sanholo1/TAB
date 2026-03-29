@@ -1,8 +1,9 @@
 import prisma from "../prisma/prisma.js";
+import type { Prisma } from "@prisma/client";
 import type { GetAllProductsParams } from "../types/products.js";
 
 export const getAllProducts = async ({ search, category, min_price, max_price, price }: GetAllProductsParams) => {
-  const where: any = {};
+  const where: Prisma.PrzedmiotyWhereInput = {};
 
   if (search) {
     where.nazwa = { contains: search };
@@ -29,11 +30,11 @@ export const getProductById = async (id: number) => {
   return prisma.przedmioty.findUnique({ where: { id_przedmiotu: id } });
 };
 
-export const createProduct = async (data: any) => {
+export const createProduct = async (data: Prisma.PrzedmiotyCreateInput) => {
   return prisma.przedmioty.create({ data });
 };
 
-export const updateProduct = async (id: number, data: any) => {
+export const updateProduct = async (id: number, data: Prisma.PrzedmiotyUpdateInput) => {
   return prisma.przedmioty.update({ where: { id_przedmiotu: id }, data });
 };
 
@@ -41,7 +42,7 @@ export const deleteProduct = async (id: number) => {
   return prisma.przedmioty.delete({ where: { id_przedmiotu: id } });
 };
 
-export const setPromotion = async (id: number, data: any) => {
+export const setPromotion = async (id: number, data: Prisma.PrzedmiotyUpdateInput) => {
   return prisma.przedmioty.update({ where: { id_przedmiotu: id }, data });
 };
 
