@@ -1,7 +1,6 @@
 import "dotenv/config";
 import cors from "cors";
 import express from "express";
-import prisma from "./prisma/prisma.js";
 import productsRouter from "./routes/products.js";
 import categoriesRouter from "./routes/categories.js";
 import cartRouter from "./routes/cart.js";
