@@ -1,0 +1,25 @@
+-- Zmiany w bazie danych dla ujednolicenia opinii i przedmiotów
+-- DropForeignKey
+ALTER TABLE `Przedmioty` DROP FOREIGN KEY `Przedmioty_id_przedmiotu_parent_fkey`;
+
+-- DropForeignKey
+ALTER TABLE `Opinia` DROP FOREIGN KEY `Opinia_id_produktu_fkey`;
+
+-- DropIndex
+DROP INDEX `Przedmioty_id_przedmiotu_parent_idx` ON `Przedmioty`;
+
+-- DropIndex
+DROP INDEX `Opinia_id_produktu_idx` ON `Opinia`;
+
+-- AlterTable
+ALTER TABLE `Przedmioty` DROP COLUMN `id_przedmiotu_parent`;
+
+-- AlterTable
+ALTER TABLE `Opinia` CHANGE COLUMN `id_produktu` `id_przedmiotu` INTEGER NOT NULL;
+
+-- CreateIndex
+CREATE INDEX `Opinia_id_przedmiotu_idx` ON `Opinia`(`id_przedmiotu`);
+
+-- AddForeignKey
+ALTER TABLE `Opinia` ADD CONSTRAINT `Opinia_id_przedmiotu_fkey` FOREIGN KEY (`id_przedmiotu`) REFERENCES `Przedmioty`(`id_przedmiotu`) ON DELETE RESTRICT ON UPDATE CASCADE;
+

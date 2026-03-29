@@ -1,0 +1,140 @@
+-- CreateTable
+CREATE TABLE `Adres` (
+    `id_adres` INTEGER NOT NULL AUTO_INCREMENT,
+    `kraj` VARCHAR(191) NOT NULL,
+    `miasto` VARCHAR(191) NOT NULL,
+    `kod_pocztowy` VARCHAR(191) NOT NULL,
+    `ulica` VARCHAR(191) NOT NULL,
+    `nr_domu` VARCHAR(191) NOT NULL,
+
+    PRIMARY KEY (`id_adres`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Rola` (
+    `id_roli` INTEGER NOT NULL AUTO_INCREMENT,
+    `nazwa` VARCHAR(191) NOT NULL,
+
+    PRIMARY KEY (`id_roli`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Uzytkownik` (
+    `id_uzytkownika` INTEGER NOT NULL AUTO_INCREMENT,
+    `nazwa` VARCHAR(191) NOT NULL,
+    `imie` VARCHAR(191) NOT NULL,
+    `nazwisko` VARCHAR(191) NOT NULL,
+    `email` VARCHAR(191) NOT NULL,
+    `haslo` VARCHAR(191) NOT NULL,
+    `id_roli` INTEGER NOT NULL,
+
+    INDEX `Uzytkownik_id_roli_idx`(`id_roli`),
+    PRIMARY KEY (`id_uzytkownika`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Kategoria` (
+    `id_kategorii` INTEGER NOT NULL AUTO_INCREMENT,
+    `nazwa` VARCHAR(191) NOT NULL,
+
+    PRIMARY KEY (`id_kategorii`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Przedmioty` (
+    `id_przedmiotu` INTEGER NOT NULL AUTO_INCREMENT,
+    `nazwa` VARCHAR(191) NOT NULL,
+    `opis` TEXT NULL,
+    `cena_sprzedazy` DECIMAL(10, 2) NOT NULL,
+    `id_kategorii` INTEGER NOT NULL,
+    `cena_prom` DECIMAL(10, 2) NULL,
+    `id_przedmiotu_parent` INTEGER NULL,
+    `ilosc` INTEGER NOT NULL,
+    `cena_zakupu` DECIMAL(10, 2) NOT NULL,
+
+    INDEX `Przedmioty_id_kategorii_idx`(`id_kategorii`),
+    INDEX `Przedmioty_id_przedmiotu_parent_idx`(`id_przedmiotu_parent`),
+    PRIMARY KEY (`id_przedmiotu`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Koszyk` (
+    `id_przedmiotu` INTEGER NOT NULL,
+    `id_uzytkownika` INTEGER NOT NULL,
+    `ilosc` INTEGER NOT NULL,
+
+    INDEX `Koszyk_id_uzytkownika_idx`(`id_uzytkownika`),
+    PRIMARY KEY (`id_przedmiotu`, `id_uzytkownika`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Opinia` (
+    `id_opinia` INTEGER NOT NULL AUTO_INCREMENT,
+    `id_uzytkownika` INTEGER NOT NULL,
+    `id_produktu` INTEGER NOT NULL,
+    `ocena` INTEGER NOT NULL,
+    `komentarz` TEXT NULL,
+
+    INDEX `Opinia_id_uzytkownika_idx`(`id_uzytkownika`),
+    INDEX `Opinia_id_produktu_idx`(`id_produktu`),
+    PRIMARY KEY (`id_opinia`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Transakcja` (
+    `id_transakcji` INTEGER NOT NULL AUTO_INCREMENT,
+    `id_uzytkownika` INTEGER NOT NULL,
+    `kwota_calkowita` DECIMAL(10, 2) NOT NULL,
+    `stan` VARCHAR(191) NOT NULL,
+    `data` VARCHAR(191) NOT NULL,
+    `id_adres` INTEGER NOT NULL,
+
+    INDEX `Transakcja_id_uzytkownika_idx`(`id_uzytkownika`),
+    INDEX `Transakcja_id_adres_idx`(`id_adres`),
+    PRIMARY KEY (`id_transakcji`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Przedmioty_transakcji` (
+    `id_transakcji` INTEGER NOT NULL,
+    `id_przedmiotu` INTEGER NOT NULL,
+    `liczba` INTEGER NOT NULL,
+    `cena_przedmiotu` DECIMAL(10, 2) NOT NULL,
+
+    INDEX `Przedmioty_transakcji_id_przedmiotu_idx`(`id_przedmiotu`),
+    PRIMARY KEY (`id_transakcji`, `id_przedmiotu`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- AddForeignKey
+ALTER TABLE `Uzytkownik` ADD CONSTRAINT `Uzytkownik_id_roli_fkey` FOREIGN KEY (`id_roli`) REFERENCES `Rola`(`id_roli`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Przedmioty` ADD CONSTRAINT `Przedmioty_id_kategorii_fkey` FOREIGN KEY (`id_kategorii`) REFERENCES `Kategoria`(`id_kategorii`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Przedmioty` ADD CONSTRAINT `Przedmioty_id_przedmiotu_parent_fkey` FOREIGN KEY (`id_przedmiotu_parent`) REFERENCES `Przedmioty`(`id_przedmiotu`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Koszyk` ADD CONSTRAINT `Koszyk_id_przedmiotu_fkey` FOREIGN KEY (`id_przedmiotu`) REFERENCES `Przedmioty`(`id_przedmiotu`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Koszyk` ADD CONSTRAINT `Koszyk_id_uzytkownika_fkey` FOREIGN KEY (`id_uzytkownika`) REFERENCES `Uzytkownik`(`id_uzytkownika`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Opinia` ADD CONSTRAINT `Opinia_id_uzytkownika_fkey` FOREIGN KEY (`id_uzytkownika`) REFERENCES `Uzytkownik`(`id_uzytkownika`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Opinia` ADD CONSTRAINT `Opinia_id_produktu_fkey` FOREIGN KEY (`id_produktu`) REFERENCES `Przedmioty`(`id_przedmiotu`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Transakcja` ADD CONSTRAINT `Transakcja_id_uzytkownika_fkey` FOREIGN KEY (`id_uzytkownika`) REFERENCES `Uzytkownik`(`id_uzytkownika`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Transakcja` ADD CONSTRAINT `Transakcja_id_adres_fkey` FOREIGN KEY (`id_adres`) REFERENCES `Adres`(`id_adres`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Przedmioty_transakcji` ADD CONSTRAINT `Przedmioty_transakcji_id_transakcji_fkey` FOREIGN KEY (`id_transakcji`) REFERENCES `Transakcja`(`id_transakcji`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Przedmioty_transakcji` ADD CONSTRAINT `Przedmioty_transakcji_id_przedmiotu_fkey` FOREIGN KEY (`id_przedmiotu`) REFERENCES `Przedmioty`(`id_przedmiotu`) ON DELETE RESTRICT ON UPDATE CASCADE;
+

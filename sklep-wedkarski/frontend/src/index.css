@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 :root {
   --text: #6b6375;
   --text-h: #08060d;
@@ -54,7 +56,7 @@
   width: 1126px;
   max-width: 100%;
   margin: 0 auto;
-  text-align: center;
+  text-align: left;
   border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
@@ -108,4 +110,38 @@ code {
   line-height: 135%;
   padding: 4px 8px;
   background: var(--code-bg);
+}
+
+button {
+  appearance: none;
+  border: 1px solid #9ca3af;
+  background: #6b7280;
+  color: #f9fafb;
+  padding: 4px 10px;
+  border-radius: 2px;
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+button:hover {
+  background: #7c8595;
+}
+
+button.active {
+  background: #4b5563;
+  border-color: #d1d5db;
+}
+
+input[type="text"],
+input[type="search"],
+input[type="number"] {
+  border: 1px solid #7a7a7a;
+  background: #3a3a3a;
+  color: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 2px;
+}
+
+input::placeholder {
+  color: #9ca3af;
 }
