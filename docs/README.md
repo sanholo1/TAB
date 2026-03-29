@@ -55,5 +55,6 @@ Jest tam surowy szkielet graficzny, trzeba go ładniej zrobić. Dodać wstawiani
 - [ ] **Wyświetlanie Obrazków**: Podmień tymczasowe placeholdery tekstowe i SVG na tagi `<img>` uderzające we właściwy format pliku.
 - [ ] **Opinie**: Na stronie `ProductDetailPage.tsx` dodaj prosty formularz na ocenę i komentarz. Podepnij pod niego przygotowaną funkcję `addProductReview()`.
 - [ ] **Koszyk**: Pod przycisk "Dodaj do koszyka" podepnij nową funkcję `addToCart()`. (System będzie wrzucał itemy na sztywno do konta usera ID=1 dopóki chłopaki nie skończą systemu logowania).
+- [ ] **Koszyk gościa (ważne)**: Aktualnie niezalogowani użytkownicy mają wspólny koszyk (ID=1). Trzeba to zmienić tak, aby każdy niezalogowany miał osobny koszyk.
 - [ ] **Co Chcesz**: Zrób to co chcesz, pisz dc jak coś nie trybi.
 - [ ] 
