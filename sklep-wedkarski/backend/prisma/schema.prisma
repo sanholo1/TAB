@@ -19,16 +19,16 @@ model Adres {
 
 model Rola {
   id_roli      Int           @id @default(autoincrement())
-  nazwa        String        @db.VarChar(191)
+  nazwa        String        @unique @db.VarChar(191)
   uzytkownicy  Uzytkownik[]
 }
 
 model Uzytkownik {
   id_uzytkownika Int                  @id @default(autoincrement())
-  nazwa          String               @db.VarChar(191)
+  nazwa          String               @unique @db.VarChar(191)
   imie           String               @db.VarChar(191)
   nazwisko       String               @db.VarChar(191)
-  email          String               @db.VarChar(191)
+  email          String               @unique @db.VarChar(191)
   haslo          String               @db.VarChar(191)
   id_roli        Int
   rola           Rola                 @relation(fields: [id_roli], references: [id_roli])
