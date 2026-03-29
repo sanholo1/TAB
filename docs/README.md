@@ -7,6 +7,7 @@ Musisz uruchomić dwa terminale i odpalić.
 **Terminal 1 (Backend - API):**
 ```bash
 cd backend
+npm install
 npm run dev
 ```
 Backend domyślnie: `http://localhost:3000`
@@ -14,6 +15,7 @@ Backend domyślnie: `http://localhost:3000`
 **Terminal 2 (Frontend - Aplikacja kliencka):**
 ```bash
 cd frontend
+npm install
 npm run dev
 ```
 Frontend domyślnie: `http://localhost:5173`
@@ -33,25 +35,21 @@ Będziecie mieli testowego uzytkownika produkt, kategorie, koszyk i role.
 ## Struktura
 
 ### Backend (Katalog `backend/`)
-Zbudowany w architekturze MVC (Routes -> Controllers -> Services). Dostosuje się do struktury zrobionej przez Sanholo. To jest tylko szkielet.
+Zbudowany w architekturze modularnej (**Routes -> Services -> Prisma Client**). System wspiera pełną autoryzację JWT oraz opcję zakupów dla gości.
 
 ### Frontend (Katalog `frontend/`)
-Zbudowany w oparciu o komponenty i foldery funkcyjne. Ludzie z frontu też możecie ustawić pod siebie. To jest tylko szkielet.
-
----
-
-## Paweł co żem odwalił
-
+Zbudowany w oparciu o komponenty i foldery funkcyjne. W pełni zintegrowany z nowym backendem.
 Strkura plikow ludzie z frontu też możecie ustawić pod siebie.
-W produktach jest zrobione API, typy, strona główna i strona detalu. 
+W produktach jest zrobione API, typy, strona główn prduktow i strona detalu. 
 Jest tam surowy szkielet graficzny, trzeba go ładniej zrobić. Dodać wstawianie opinii, dodawanie do koszyka, filtrowanie cen. 
 
-### Co już masz gotowe:
-1. **`products.api.ts`** – Masz tam gotowe funkcje do backendu. Oprócz pobierania danych, masz teraz również **`addProductReview(id, data)`** oraz **`addToCart(id, ilosc)`**. Zostały zintegrowane z backendowymi endpointami.
-2. **`products.types.ts`** – Gotowe interfejsy TypeScript (Product, Review, Category) zgodne z bazą danych.
-3. **`ProductsPage.tsx`** – Działająca strona ze wszystkimi produktami. 
-4. **`ProductDetailPage.tsx`** – Działająca strona szczegółów z pobieraniem opinii.
-
+### Postępy prac:
+1. **`products.api.ts`** – Pełna integracja z backendem. Funkcje **`addProductReview(id, data)`** oraz **`addToCart(id, ilosc)`** działają z nową strukturą bazy.
+2. **`Autoryzacja`** – Mamy gotowy moduł rejestracji i logowania na backendzie. 
+3. **`Filtrowanie`** – Na stronie produktów działa już filtrowanie po cenie i kategoriach.
+4. **`Koszyk`** – System automatycznie przypisuje zakupy do zalogowanego usera lub gościa (ID=1).
+   
+## Dla Pawła
 ### Twoje TODO:
 - [ ] **Design**: Zrób to ładnie, usuń ramki, dodaj kolory, obrazki, poprawne marginesy.
 - [ ] **Wyświetlanie Obrazków**: Podmień tymczasowe placeholdery tekstowe i SVG na tagi `<img>` uderzające we właściwy format pliku.
