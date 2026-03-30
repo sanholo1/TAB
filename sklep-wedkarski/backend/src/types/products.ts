@@ -4,5 +4,4 @@ export type GetAllProductsParams = {
   min_price?: number;
   max_price?: number;
   price?: string;
-  on_promo?: boolean;
 };

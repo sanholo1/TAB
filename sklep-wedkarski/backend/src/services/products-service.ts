@@ -2,7 +2,7 @@ import prisma from "../prisma/prisma.js";
 import type { Prisma } from "@prisma/client";
 import type { GetAllProductsParams } from "../types/products.js";
 
-export const getAllProducts = async ({ search, category, min_price, max_price, price, on_promo }: GetAllProductsParams) => {
+export const getAllProducts = async ({ search, category, min_price, max_price, price }: GetAllProductsParams) => {
   const where: Prisma.PrzedmiotyWhereInput = {};
 
   if (search) {
@@ -11,10 +11,6 @@ export const getAllProducts = async ({ search, category, min_price, max_price, p
 
   if (category !== undefined) {
     where.id_kategorii = category;
-  }
-
-  if (on_promo) {
-    where.cena_prom = { not: null };
   }
 
   if (min_price !== undefined || max_price !== undefined) {
