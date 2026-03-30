@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { fetchProducts, fetchCategories } from "./products.api";
 import type { Product, Category } from "./products.types";
@@ -16,8 +16,6 @@ export default function ProductsPage() {
 
   const [minPriceInput, setMinPriceInput] = useState(minPriceParam || "");
   const [maxPriceInput, setMaxPriceInput] = useState(maxPriceParam || "");
-  const [searchInput, setSearchInput] = useState(searchParam || "");
-
   const priceOptions = [
     { label: "do 50 zł", value: "low" },
     { label: "50-200 zł", value: "mid" },
@@ -63,14 +61,6 @@ export default function ProductsPage() {
     setSearchParams(newParams);
   };
 
-  const handleSearchFilter = () => {
-    const newParams = new URLSearchParams(searchParams);
-    const value = searchInput.trim();
-    if (value) newParams.set("search", value);
-    else newParams.delete("search");
-    setSearchParams(newParams);
-  };
-
   return (
     <div className="space-y-6">
       <section className="rounded-[2rem] border border-slate-200 bg-white/90 p-6 shadow-xl shadow-slate-300/20">
@@ -100,26 +90,6 @@ export default function ProductsPage() {
           </div>
 
           <div className="space-y-5">
-            <div>
-              <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-sky-700">Szukaj</h3>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Szukaj produktu..."
-                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none focus:border-sky-500"
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                />
-                <button
-                  type="button"
-                  className="rounded-2xl bg-sky-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-800"
-                  onClick={handleSearchFilter}
-                >
-                  Szukaj
-                </button>
-              </div>
-            </div>
-
             <div>
               <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-sky-700">Kategorie</h3>
               <ul className="space-y-2">

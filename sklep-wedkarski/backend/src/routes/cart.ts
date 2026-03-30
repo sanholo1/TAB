@@ -1,11 +1,12 @@
 import { Router, Request } from "express";
 import { verifyAuthToken } from "../lib/jwt.js";
-import { getCart, addToCart } from "../services/cart-service.js";
+import { getCart, addToCart, removeFromCart } from "../services/cart-service.js";
+import { validateRequest } from "../validation/validate-request.js";
+import { addToCartSchema, cartItemParamSchema } from "../validation/cart-schemas.js";
 
 const router = Router();
 
 const GUEST_USER_ID = 1;
-
 
 const getUserIdFromRequest = (req: Request): number => {
   try {
@@ -22,11 +23,9 @@ const getUserIdFromRequest = (req: Request): number => {
     const payload = verifyAuthToken(token);
     return payload.userId;
   } catch (error) {
-
     return GUEST_USER_ID;
   }
 };
-
 
 router.get("/", async (req, res) => {
   const userId = getUserIdFromRequest(req);
@@ -34,18 +33,20 @@ router.get("/", async (req, res) => {
   res.json(cart);
 });
 
-
 router.post("/", async (req, res) => {
   const userId = getUserIdFromRequest(req);
-  const { id_przedmiotu, ilosc } = req.body;
-
-  if (!id_przedmiotu || !ilosc || ilosc < 1) {
-    res.status(400).json({ error: "Nieprawidłowe ID przedmiotu lub ilość" });
-    return;
-  }
-
-  const { item, created } = await addToCart(userId, Number(id_przedmiotu), Number(ilosc));
+  const payload = validateRequest(addToCartSchema, req.body);
+  
+  const { item, created } = await addToCart(userId, payload.id_przedmiotu, payload.ilosc);
   res.status(created ? 201 : 200).json(item);
+});
+
+router.delete("/:id", async (req, res) => {
+  const userId = getUserIdFromRequest(req);
+  const { id } = validateRequest(cartItemParamSchema, req.params);
+
+  await removeFromCart(userId, id);
+  res.status(204).send();
 });
 
 export default router;

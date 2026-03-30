@@ -91,7 +91,7 @@ model Transakcja {
   id_uzytkownika     Int
   kwota_calkowita    Decimal                 @db.Decimal(10, 2)
   stan               String                  @db.VarChar(191)
-  data               String                  @db.VarChar(191)
+  data               DateTime                @default(now())
   id_adres           Int
   uzytkownik         Uzytkownik              @relation(fields: [id_uzytkownika], references: [id_uzytkownika])
   adres              Adres                   @relation(fields: [id_adres], references: [id_adres])

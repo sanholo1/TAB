@@ -2,6 +2,10 @@
 set -eu
 
 BASE_URL="${BASE_URL:-http://localhost:3000}"
+TS="$(date +%s)"
+TEST_EMAIL="apitest_${TS}@example.com"
+TEST_PASSWORD="Testpass1"
+TOKEN=""
 
 STATUS=""
 BODY=""
@@ -45,26 +49,22 @@ assert_status() {
 echo "BASE_URL=$BASE_URL"
 echo ""
 
+# ── Setup: register + login test user ──────────────────────────────────────────
+request "POST" "/auth/register" "{\"username\":\"apitest_${TS}\",\"firstName\":\"Api\",\"lastName\":\"Test\",\"email\":\"$TEST_EMAIL\",\"password\":\"$TEST_PASSWORD\",\"confirmPassword\":\"$TEST_PASSWORD\"}"
+assert_status "201" "$STATUS" "setup: register test user"
 
-TEST_EMAIL="apitest_$(date +%s)@example.com"
-TEST_PASS="Test1234!"
-
-request "POST" "/auth/register" "{\"username\":\"apitest$(date +%s)\",\"firstName\":\"API\",\"lastName\":\"Test\",\"email\":\"$TEST_EMAIL\",\"password\":\"$TEST_PASS\",\"confirmPassword\":\"$TEST_PASS\"}"
-if [ "$STATUS" != "201" ]; then
-  echo "[WARN] Register failed ($STATUS), trying login with existing account..."
-fi
-
-request "POST" "/auth/login" "{\"email\":\"$TEST_EMAIL\",\"password\":\"$TEST_PASS\"}"
-if [ "$STATUS" != "200" ]; then
-  echo "[FAIL] Login failed -> $STATUS"
+request "POST" "/auth/login" "{\"email\":\"$TEST_EMAIL\",\"password\":\"$TEST_PASSWORD\"}"
+assert_status "200" "$STATUS" "setup: login test user"
+TOKEN="$(printf '%s\n' "$BODY" | sed -E 's/.*"accessToken":"([^"]+)".*/\1/')"
+if [ -z "$TOKEN" ] || [ "$TOKEN" = "$BODY" ]; then
+  echo "[FAIL] setup: accessToken missing"
   echo "Body: $BODY"
   exit 1
 fi
-
-TOKEN="$(printf '%s\n' "$BODY" | sed -E 's/.*"accessToken":"([^"]+)".*/\1/')"
-echo "[OK] Auth token obtained"
+echo "[OK] setup: token obtained"
 echo ""
 
+# ── Categories ─────────────────────────────────────────────────────────────────
 echo "=== CATEGORIES ==="
 
 request "GET" "/categories"
@@ -80,6 +80,7 @@ if [ -n "$FIRST_CATEGORY_ID" ] && [ "$FIRST_CATEGORY_ID" != "$BODY" ]; then
   echo "[OK] /categories/:id returns correct category"
 fi
 
+# ── Products ───────────────────────────────────────────────────────────────────
 echo ""
 echo "=== PRODUCTS ==="
 
@@ -118,6 +119,7 @@ if [ -n "$FIRST_PRODUCT_ID" ] && [ "$FIRST_PRODUCT_ID" != "$BODY" ]; then
   assert_status "201" "$STATUS" "POST /products/:id/reviews valid"
 fi
 
+# ── Cart ───────────────────────────────────────────────────────────────────────
 echo ""
 echo "=== CART ==="
 
@@ -135,6 +137,9 @@ if [ -n "$FIRST_PRODUCT_ID" ] && [ "$FIRST_PRODUCT_ID" != "$BODY" ]; then
 
   request "POST" "/cart" "{\"id_przedmiotu\":$FIRST_PRODUCT_ID,\"ilosc\":1}" "$TOKEN"
   assert_status "200" "$STATUS" "POST /cart upsert"
+
+  request "DELETE" "/cart/$FIRST_PRODUCT_ID" "" "$TOKEN"
+  assert_status "204" "$STATUS" "DELETE /cart/:id"
 fi
 
 echo ""

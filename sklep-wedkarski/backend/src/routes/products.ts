@@ -1,54 +1,20 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/authenticate.js";
+import { authorize } from "../middleware/authorize.js";
+import { validateRequest } from "../validation/validate-request.js";
+import { createProductSchema, updateProductSchema, setPromotionSchema, updateStockSchema, addReviewSchema, productIdSchema, getProductsQuerySchema } from "../validation/product-schemas.js";
 import { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct, setPromotion, getProductReviews, addProductReview } from "../services/products-service.js";
-import type { GetAllProductsParams } from "../types/products.js";
 
 const router = Router();
 
 router.get("/", async (req, res) => {
-  const params: GetAllProductsParams = {};
-
-  if (typeof req.query.search === "string") params.search = req.query.search;
-
-  if (typeof req.query.category === "string") {
-    const category = Number(req.query.category);
-    if (!Number.isInteger(category) || category <= 0) {
-      res.status(400).json({ error: "Invalid category value" });
-      return;
-    }
-    params.category = category;
-  }
-
-  if (typeof req.query.min_price === "string") {
-    const minPrice = Number(req.query.min_price);
-    if (!Number.isFinite(minPrice)) {
-      res.status(400).json({ error: "Invalid min_price value" });
-      return;
-    }
-    params.min_price = minPrice;
-  }
-
-  if (typeof req.query.max_price === "string") {
-    const maxPrice = Number(req.query.max_price);
-    if (!Number.isFinite(maxPrice)) {
-      res.status(400).json({ error: "Invalid max_price value" });
-      return;
-    }
-    params.max_price = maxPrice;
-  }
-
-  if (typeof req.query.price === "string") params.price = req.query.price;
-
-  const products = await getAllProducts(params);
+  const payload = validateRequest(getProductsQuerySchema, req.query);
+  const products = await getAllProducts(payload as any);
   res.json(products);
 });
 
 router.get("/:id", async (req, res) => {
-  const id = Number(req.params.id);
-  if (!Number.isInteger(id) || id <= 0) {
-    res.status(400).json({ error: "Invalid product id" });
-    return;
-  }
+  const { id } = validateRequest(productIdSchema, req.params);
 
   const product = await getProductById(id);
   if (!product) {
@@ -59,69 +25,57 @@ router.get("/:id", async (req, res) => {
   res.json(product);
 });
 
-router.post("/", authenticate, async (req, res) => {
-  const product = await createProduct(req.body);
+router.post("/", authenticate, authorize(2, 3), async (req, res) => {
+  const payload = validateRequest(createProductSchema, req.body);
+  const product = await createProduct(payload as any);
   res.status(201).json(product);
 });
 
-router.put("/:id", authenticate, async (req, res) => {
-  const id = Number(req.params.id);
-  if (!Number.isInteger(id) || id <= 0) {
-    res.status(400).json({ error: "Invalid product id" });
-    return;
-  }
-
-  const product = await updateProduct(id, req.body);
+router.put("/:id", authenticate, authorize(2, 3), async (req, res) => {
+  const { id } = validateRequest(productIdSchema, req.params);
+  const payload = validateRequest(updateProductSchema, req.body);
+  
+  const product = await updateProduct(id, payload as any);
   res.json(product);
 });
 
-router.delete("/:id", authenticate, async (req, res) => {
-  const id = Number(req.params.id);
-  if (!Number.isInteger(id) || id <= 0) {
-    res.status(400).json({ error: "Invalid product id" });
-    return;
-  }
+router.delete("/:id", authenticate, authorize(3), async (req, res) => {
+  const { id } = validateRequest(productIdSchema, req.params);
 
   await deleteProduct(id);
   res.status(204).send();
 });
 
-router.put("/:id/promotion", authenticate, async (req, res) => {
-  const id = Number(req.params.id);
-  if (!Number.isInteger(id) || id <= 0) {
-    res.status(400).json({ error: "Invalid product id" });
-    return;
-  }
+router.put("/:id/promotion", authenticate, authorize(2, 3), async (req, res) => {
+  const { id } = validateRequest(productIdSchema, req.params);
 
-  const product = await setPromotion(id, req.body);
+  const payload = validateRequest(setPromotionSchema, req.body);
+  const product = await setPromotion(id, payload);
+  res.json(product);
+});
+
+router.patch("/:id/stock", authenticate, authorize(2, 3), async (req, res) => {
+  const { id } = validateRequest(productIdSchema, req.params);
+
+  const payload = validateRequest(updateStockSchema, req.body);
+  const product = await updateProduct(id, payload);
   res.json(product);
 });
 
 router.get("/:id/reviews", async (req, res) => {
-  const id = Number(req.params.id);
-  if (!Number.isInteger(id) || id <= 0) {
-    res.status(400).json({ error: "Invalid product id" });
-    return;
-  }
+  const { id } = validateRequest(productIdSchema, req.params);
 
   const reviews = await getProductReviews(id);
   res.json(reviews);
 });
 
 router.post("/:id/reviews", authenticate, async (req, res) => {
-  const id = Number(req.params.id);
-  if (!Number.isInteger(id) || id <= 0) {
-    res.status(400).json({ error: "Invalid product id" });
-    return;
-  }
+  const { id } = validateRequest(productIdSchema, req.params);
 
-  const rating = Number(req.body.ocena ?? req.body.rating);
-  const comment = (req.body.komentarz ?? req.body.comment ?? "") as string;
-
-  if (!rating || rating < 1 || rating > 5) {
-    res.status(400).json({ error: "Rating must be between 1 and 5" });
-    return;
-  }
+  const payload = validateRequest(addReviewSchema, req.body);
+  
+  const rating = Number(payload.ocena ?? payload.rating);
+  const comment = (payload.komentarz ?? payload.comment ?? "") as string;
 
   const userId = req.authUser!.userId;
 
