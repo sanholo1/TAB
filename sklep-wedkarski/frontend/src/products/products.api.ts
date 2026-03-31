@@ -9,15 +9,15 @@ export async function fetchProducts(params?: {
   price?: string;
   min_price?: number;
   max_price?: number;
-  on_promo?: boolean;
+  limit?: number;
 }): Promise<Product[]> {
   const queryParams: any = {};
   if (params?.search) queryParams.search = params.search;
-  if (params?.category !== undefined) queryParams.category = params.category;
+  if (params?.category !== undefined) queryParams.category = String(params.category);
   if (params?.price) queryParams.price = params.price;
-  if (params?.min_price !== undefined) queryParams.min_price = params.min_price;
-  if (params?.max_price !== undefined) queryParams.max_price = params.max_price;
-  if (params?.on_promo) queryParams.on_promo = "true";
+  if (params?.min_price !== undefined) queryParams.min_price = String(params.min_price);
+  if (params?.max_price !== undefined) queryParams.max_price = String(params.max_price);
+  if (params?.limit !== undefined) queryParams.limit = String(params.limit);
 
   const query = new URLSearchParams(queryParams).toString();
   const res = await fetch(`${BASE_URL}/products${query ? "?" + query : ""}`);
