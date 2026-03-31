@@ -2,6 +2,8 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { fetchProducts, fetchCategories } from "./products.api";
 import type { Product, Category } from "./products.types";
+import ProductList from "../components/ProductList";
+import FilterSidebar from "../components/FilterSidebar";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -13,16 +15,6 @@ export default function ProductsPage() {
   const priceParam = searchParams.get("price");
   const minPriceParam = searchParams.get("min_price");
   const maxPriceParam = searchParams.get("max_price");
-
-  const [minPriceInput, setMinPriceInput] = useState(minPriceParam || "");
-  const [maxPriceInput, setMaxPriceInput] = useState(maxPriceParam || "");
-  const [searchInput, setSearchInput] = useState(searchParam || "");
-
-  const priceOptions = [
-    { label: "do 50 zł", value: "low" },
-    { label: "50-200 zł", value: "mid" },
-    { label: "powyżej 200 zł", value: "high" },
-  ];
 
   useEffect(() => {
     fetchProducts({
@@ -40,36 +32,6 @@ export default function ProductsPage() {
     fetchCategories().then(setCategories).catch(console.error);
   }, []);
 
-  const handlePriceFilter = () => {
-    const newParams = new URLSearchParams(searchParams);
-    newParams.delete("price");
-    if (minPriceInput) newParams.set("min_price", minPriceInput);
-    else newParams.delete("min_price");
-
-    if (maxPriceInput) newParams.set("max_price", maxPriceInput);
-    else newParams.delete("max_price");
-
-    setSearchParams(newParams);
-  };
-
-  const handlePresetPriceChange = (value: string) => {
-    const newParams = new URLSearchParams(searchParams);
-    if (priceParam === value) newParams.delete("price");
-    else newParams.set("price", value);
-    newParams.delete("min_price");
-    newParams.delete("max_price");
-    setMinPriceInput("");
-    setMaxPriceInput("");
-    setSearchParams(newParams);
-  };
-
-  const handleSearchFilter = () => {
-    const newParams = new URLSearchParams(searchParams);
-    const value = searchInput.trim();
-    if (value) newParams.set("search", value);
-    else newParams.delete("search");
-    setSearchParams(newParams);
-  };
 
   return (
     <div className="space-y-6">
@@ -93,120 +55,38 @@ export default function ProductsPage() {
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
-        <aside className="rounded-[2rem] border border-slate-200 bg-slate-50/90 p-6 shadow-sm">
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-slate-900">Filtry</h2>
-            <p className="mt-2 text-slate-600">Dopasuj wyniki do swojego wypadu nad wodę.</p>
-          </div>
-
-          <div className="space-y-5">
-            <div>
-              <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-sky-700">Szukaj</h3>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Szukaj produktu..."
-                  className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none focus:border-sky-500"
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                />
-                <button
-                  type="button"
-                  className="rounded-2xl bg-sky-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-800"
-                  onClick={handleSearchFilter}
-                >
-                  Szukaj
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-sky-700">Kategorie</h3>
-              <ul className="space-y-2">
-                <li>
-                  <Link to="/products" className="text-slate-700 hover:text-sky-900">
-                    Wszystkie
-                  </Link>
-                </li>
-                {categories.map((cat) => (
-                  <li key={cat.id_kategorii}>
-                    <Link to={`/products?category=${cat.id_kategorii}`} className="text-slate-700 hover:text-sky-900">
-                      {cat.nazwa}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-sky-700">Cena</h3>
-              <div className="flex flex-col gap-2">
-                {priceOptions.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    className={`rounded-2xl px-4 py-3 text-left text-sm transition ${
-                      priceParam === opt.value ? "bg-sky-700 text-white" : "bg-white text-slate-700 hover:bg-slate-100"
-                    }`}
-                    onClick={() => handlePresetPriceChange(opt.value)}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <input
-                  type="number"
-                  placeholder="Min"
-                  className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none focus:border-sky-500"
-                  value={minPriceInput}
-                  onChange={(e) => setMinPriceInput(e.target.value)}
-                />
-                <input
-                  type="number"
-                  placeholder="Max"
-                  className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none focus:border-sky-500"
-                  value={maxPriceInput}
-                  onChange={(e) => setMaxPriceInput(e.target.value)}
-                />
-              </div>
-              <button
-                className="mt-4 w-full rounded-2xl bg-sky-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-800"
-                type="button"
-                onClick={handlePriceFilter}
-              >
-                Zastosuj
-              </button>
-            </div>
-          </div>
-        </aside>
+        <FilterSidebar
+          categories={categories}
+          selectedCategory={Number(categoryIdParam) || null}
+          onCategoryChange={(id) => {
+            const newParams = new URLSearchParams(searchParams);
+            if (id) newParams.set("category", id.toString());
+            else newParams.delete("category");
+            setSearchParams(newParams);
+          }}
+          minPrice={minPriceParam || ""}
+          maxPrice={maxPriceParam || ""}
+          onPriceChange={(min, max) => {
+            const newParams = new URLSearchParams(searchParams);
+            if (min) newParams.set("min_price", min);
+            else newParams.delete("min_price");
+            
+            if (max) newParams.set("max_price", max);
+            else newParams.delete("max_price");
+            
+            setSearchParams(newParams);
+          }}
+          onClearFilters={() => {
+            setSearchParams(new URLSearchParams()); // Czyści cały URL
+          }}
+        />
 
         <main className="rounded-[2rem] border border-slate-200 bg-white/90 p-6 shadow-sm">
           <div className="mb-6 flex items-center justify-between gap-4">
             <h2 className="text-2xl font-semibold text-slate-900">Lista produktów ({products.length})</h2>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((p) => (
-              <div key={p.id_przedmiotu} className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 shadow-sm">
-                <div className="mb-4 flex h-32 items-center justify-center rounded-3xl bg-slate-100 text-sm text-slate-500">
-                  [Zdjęcie produktu]
-                </div>
-                <h3 className="mb-2 text-lg font-semibold text-slate-900">{p.nazwa}</h3>
-                <p className="mb-4 text-sm text-slate-600">{p.opis ?? "Brak opisu"}</p>
-                <div className="space-y-2">
-                  <p className="text-sm text-slate-600">Kategoria: {p.id_kategorii}</p>
-                  <p className="text-lg font-semibold text-slate-900">{p.cena_sprzedazy} zł</p>
-                </div>
-                <Link
-                  to={`/products/${p.id_przedmiotu}`}
-                  className="mt-4 inline-flex w-full justify-center rounded-2xl bg-sky-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-800"
-                >
-                  Szczegóły
-                </Link>
-              </div>
-            ))}
-          </div>
+          <ProductList products={products} />
 
           {products.length === 0 && (
             <p className="mt-6 text-center text-slate-500">Brak produktów do wyświetlenia. Spróbuj zmienić filtr.</p>

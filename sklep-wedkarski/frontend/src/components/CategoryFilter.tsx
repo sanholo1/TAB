@@ -1,5 +1,5 @@
 import React from "react";
-import type { Category } from "../App";
+import type { Category } from "../products/products.types";
 
 interface Props {
   categories: Category[];
@@ -9,19 +9,22 @@ interface Props {
 
 const CategoryFilter: React.FC<Props> = ({ categories, selectedCategory, setSelectedCategory }) => {
   return (
-    <div style={{ display: "flex", gap: "10px", padding: "10px" }}>
-      {categories.map(cat => (
-        <button
-          key={cat.id_kategorii}
-          className={selectedCategory === cat.id_kategorii ? "active" : ""}
-          onClick={() =>
-            setSelectedCategory(
-              selectedCategory === cat.id_kategorii ? null : cat.id_kategorii
-            )
-          }
-        >
-          {cat.nazwa}
-        </button>
+    <div className="flex flex-col gap-2">
+      <h3 className="font-semibold text-slate-900 mb-2">Kategorie</h3>
+      {categories.map((cat) => (
+        <label key={cat.id_kategorii} className="flex items-center gap-2 cursor-pointer">
+          <input
+            type="checkbox"
+            className="rounded border-slate-300 text-sky-700 focus:ring-sky-600"
+            checked={selectedCategory === cat.id_kategorii}
+            onChange={() =>
+              setSelectedCategory(
+                selectedCategory === cat.id_kategorii ? null : cat.id_kategorii
+              )
+            }
+          />
+          <span className="text-sm text-slate-700">{cat.nazwa}</span>
+        </label>
       ))}
     </div>
   );
