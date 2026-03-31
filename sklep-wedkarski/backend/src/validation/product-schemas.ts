@@ -47,4 +47,5 @@ export const getProductsQuerySchema = z.object({
   min_price: z.coerce.number().nonnegative().optional(),
   max_price: z.coerce.number().nonnegative().optional(),
   price: z.string().optional(),
+  limit: z.coerce.number().int().positive().optional(),
 });

@@ -2,7 +2,7 @@ import prisma from "../prisma/prisma.js";
 import type { Prisma } from "@prisma/client";
 import type { GetAllProductsParams } from "../types/products.js";
 
-export const getAllProducts = async ({ search, category, min_price, max_price, price }: GetAllProductsParams) => {
+export const getAllProducts = async ({ search, category, min_price, max_price, price, limit }: GetAllProductsParams) => {
   const where: Prisma.PrzedmiotyWhereInput = {};
 
   if (search) {
@@ -23,7 +23,7 @@ export const getAllProducts = async ({ search, category, min_price, max_price, p
     if (price === "high") where.cena_sprzedazy = { gt: 200 };
   }
 
-  return prisma.przedmioty.findMany({ where });
+  return prisma.przedmioty.findMany({ where, ...(limit ? { take: limit } : {}) });
 };
 
 export const getProductById = async (id: number) => {
