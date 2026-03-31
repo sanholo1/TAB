@@ -1,4 +1,5 @@
 import prisma from "../prisma/prisma.js";
+import { HttpError } from "../errors/http-error.js";
 
 export const getCart = async (userId: number) => {
   return prisma.koszyk.findMany({
@@ -28,4 +29,22 @@ export const addToCart = async (userId: number, id_przedmiotu: number, ilosc: nu
     data: { id_uzytkownika: userId, id_przedmiotu, ilosc },
   });
   return { item: created, created: true };
+};
+
+export const removeFromCart = async (userId: number, id_przedmiotu: number) => {
+  const existing = await prisma.koszyk.findUnique({
+    where: {
+      id_przedmiotu_id_uzytkownika: { id_przedmiotu, id_uzytkownika: userId },
+    },
+  });
+
+  if (!existing) {
+    throw new HttpError(404, "Product not found in cart");
+  }
+
+  return prisma.koszyk.delete({
+    where: {
+      id_przedmiotu_id_uzytkownika: { id_przedmiotu, id_uzytkownika: userId },
+    },
+  });
 };

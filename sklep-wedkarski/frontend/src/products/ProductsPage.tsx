@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { fetchProducts, fetchCategories } from "./products.api";
 import type { Product, Category } from "./products.types";

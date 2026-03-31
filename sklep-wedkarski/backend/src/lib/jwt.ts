@@ -20,7 +20,7 @@ export const verifyAuthToken = (token: string): AuthTokenPayload => {
     const userId = decoded.userId;
     const roleId = decoded.roleId;
 
-    if (typeof userId !== "number" || typeof roleId !== "number") {
+    if (typeof userId !== "number" || typeof roleId !== "number") { 
       throw new HttpError(401, "Invalid token payload");
     }
 

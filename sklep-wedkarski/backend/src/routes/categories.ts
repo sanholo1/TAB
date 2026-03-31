@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { getAllCategories, getCategoryById } from "../services/categories-service.js";
 
+import { validateRequest } from "../validation/validate-request.js";
+import { categoryIdSchema } from "../validation/category-schemas.js";
+
 const router = Router();
 
 router.get("/", async (_req, res) => {
@@ -9,11 +12,7 @@ router.get("/", async (_req, res) => {
 });
 
 router.get("/:id", async (req, res) => {
-  const id = Number(req.params.id);
-  if (!Number.isInteger(id) || id <= 0) {
-    res.status(400).json({ error: "Invalid category id" });
-    return;
-  }
+  const { id } = validateRequest(categoryIdSchema, req.params);
 
   const category = await getCategoryById(id);
   if (!category) {
