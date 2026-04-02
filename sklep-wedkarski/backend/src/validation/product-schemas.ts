@@ -8,6 +8,7 @@ export const createProductSchema = z.object({
   cena_prom: z.number().nullable().optional(),
   ilosc: z.number().int().min(0, "Quantity must be non-negative"),
   id_kategorii: z.number().int().positive("Invalid category ID"),
+  zdjecie_url: z.string().max(500, "Image URL is too long").nullable().optional(),
 });
 
 export const updateProductSchema = z.object({
@@ -18,6 +19,7 @@ export const updateProductSchema = z.object({
   cena_prom: z.number().nullable().optional(),
   ilosc: z.number().int().min(0, "Quantity must be non-negative").optional(),
   id_kategorii: z.number().int().positive("Invalid category ID").optional(),
+  zdjecie_url: z.string().max(500, "Image URL is too long").nullable().optional(),
 });
 
 export const setPromotionSchema = z.object({

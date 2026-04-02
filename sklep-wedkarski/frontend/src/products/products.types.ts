@@ -7,6 +7,7 @@ export interface Product {
   cena_prom: number | null;
   ilosc: number;
   id_kategorii: number;
+  zdjecie_url: string | null;
   kategoria?: Category;
 }
 

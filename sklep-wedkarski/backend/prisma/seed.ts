@@ -14,6 +14,24 @@ async function main() {
     },
   });
 
+  const kategoria2 = await prisma.kategoria.upsert({
+    where: { id_kategorii: 2 },
+    update: {},
+    create: {
+      id_kategorii: 2,
+      nazwa: 'Haczyki',
+    },
+  });
+
+  const kategoria3 = await prisma.kategoria.upsert({
+    where: { id_kategorii: 3 },
+    update: {},
+    create: {
+      id_kategorii: 3,
+      nazwa: 'Przynęty',
+    },
+  });
+
   const produkt = await prisma.przedmioty.upsert({
     where: { id_przedmiotu: 1 },
     update: {},
@@ -25,6 +43,55 @@ async function main() {
       cena_zakupu: 100.00,
       ilosc: 10,
       id_kategorii: 1,
+      zdjecie_url: null,
+    },
+  });
+
+  const produkt2 = await prisma.przedmioty.upsert({
+    where: { id_przedmiotu: 2 },
+    update: {},
+    create: {
+      id_przedmiotu: 2,
+      nazwa: 'Haczyki Uniwersalne',
+      opis: 'Zestaw 50 haczyków w różnych rozmiarach.',
+      cena_sprzedazy: 29.99,
+      cena_prom: 19.99,
+      cena_zakupu: 10.00,
+      ilosc: 50,
+      id_kategorii: 2,
+      zdjecie_url: null,
+    },
+  });
+
+  const produkt3 = await prisma.przedmioty.upsert({
+    where: { id_przedmiotu: 3 },
+    update: {},
+    create: {
+      id_przedmiotu: 3,
+      nazwa: 'Przynęta Gumowa',
+      opis: 'Realistyczna przynęta gumowa imitująca rybkę.',
+      cena_sprzedazy: 15.99,
+      cena_prom: 9.99,
+      cena_zakupu: 5.00,
+      ilosc: 100,
+      id_kategorii: 3,
+      zdjecie_url: null,
+    },
+  });
+
+  const produkt4 = await prisma.przedmioty.upsert({
+    where: { id_przedmiotu: 4 },
+    update: {},
+    create: {
+      id_przedmiotu: 4,
+      nazwa: 'Wędka Spinningowa',
+      opis: 'Lekka wędka spinningowa idealna na szczupaki.',
+      cena_sprzedazy: 249.99,
+      cena_prom: 199.99,
+      cena_zakupu: 120.00,
+      ilosc: 5,
+      id_kategorii: 1,
+      zdjecie_url: null,
     },
   });
 
@@ -131,7 +198,13 @@ async function main() {
 
   console.log('GIT.', {
     kategoria,
+    kategoria2,
+    kategoria3,
     produkt,
+    produkt2,
+    produkt3,
+    produkt4,
+    rola,
     rolaSprzedawca,
     rolaAdmin,
     userGuest,
