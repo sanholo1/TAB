@@ -4,6 +4,8 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import productsRouter from "./routes/products.js";
+import inventoryRouter from "./routes/inventory.js";
+import promotionsRouter from "./routes/promotions.js";
 import categoriesRouter from "./routes/categories.js";
 import cartRouter from "./routes/cart.js";
 import authRouter from "./routes/auth.js";
@@ -22,6 +24,8 @@ app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 app.use("/products", productsRouter);
+app.use("/inventory", inventoryRouter);
+app.use("/promotions", promotionsRouter);
 app.use("/categories", categoriesRouter);
 app.use("/cart", cartRouter);
 app.use("/auth", authRouter);

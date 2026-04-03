@@ -37,22 +37,6 @@ export const getProductById = async (id: number) => {
   });
 };
 
-export const createProduct = async (data: Prisma.PrzedmiotyUncheckedCreateInput) => {
-  return prisma.przedmioty.create({ data });
-};
-
-export const updateProduct = async (id: number, data: Prisma.PrzedmiotyUncheckedUpdateInput) => {
-  return prisma.przedmioty.update({ where: { id_przedmiotu: id }, data });
-};
-
-export const deleteProduct = async (id: number) => {
-  return prisma.przedmioty.update({ where: { id_przedmiotu: id }, data: { aktywny: false } });
-};
-
-export const setPromotion = async (id: number, data: Prisma.PrzedmiotyUpdateInput) => {
-  return prisma.przedmioty.update({ where: { id_przedmiotu: id }, data });
-};
-
 export const getProductReviews = async (id: number) => {
   return prisma.opinia.findMany({ where: { id_przedmiotu: id } });
 };

@@ -92,27 +92,6 @@ export async function fetchFeaturedProducts(limit: number = 5): Promise<Product[
 }
 
 
-export async function uploadProductImage(file: File): Promise<{ url: string }> {
-  const formData = new FormData();
-  formData.append("image", file);
-
-  const headers: HeadersInit = {};
-  const token = getToken();
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  const res = await fetch(`${BASE_URL}/upload`, {
-    method: "POST",
-    headers,
-    body: formData,
-  });
-
-  if (!res.ok) throw new Error("Failed to upload image");
-  return res.json();
-}
-
-
 export async function getCart() {
   const headers: HeadersInit = {};
   const token = getToken();
@@ -138,4 +117,22 @@ export async function removeFromCart(id_przedmiotu: number) {
     headers,
   });
   if (!res.ok) throw new Error("Failed to remove from cart");
+}
+
+
+export async function mergeCart(items: Array<{ id_przedmiotu: number; ilosc: number }>) {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  const token = getToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${BASE_URL}/cart/merge`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ items }),
+  });
+
+  if (!res.ok) throw new Error("Failed to merge cart");
+  return res.json();
 }

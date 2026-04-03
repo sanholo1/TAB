@@ -48,3 +48,44 @@ export const removeFromCart = async (userId: number, id_przedmiotu: number) => {
     },
   });
 };
+
+export const mergeCart = async (
+  userId: number,
+  items: Array<{ id_przedmiotu: number; ilosc: number }>,
+) => {
+  await prisma.$transaction(async (tx) => {
+    for (const item of items) {
+      const existing = await tx.koszyk.findUnique({
+        where: {
+          id_przedmiotu_id_uzytkownika: {
+            id_przedmiotu: item.id_przedmiotu,
+            id_uzytkownika: userId,
+          },
+        },
+      });
+
+      if (existing) {
+        await tx.koszyk.update({
+          where: {
+            id_przedmiotu_id_uzytkownika: {
+              id_przedmiotu: item.id_przedmiotu,
+              id_uzytkownika: userId,
+            },
+          },
+          data: { ilosc: existing.ilosc + item.ilosc },
+        });
+        continue;
+      }
+
+      await tx.koszyk.create({
+        data: {
+          id_uzytkownika: userId,
+          id_przedmiotu: item.id_przedmiotu,
+          ilosc: item.ilosc,
+        },
+      });
+    }
+  });
+
+  return getCart(userId);
+};
