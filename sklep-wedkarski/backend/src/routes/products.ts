@@ -2,7 +2,7 @@ import { Router } from "express";
 import { authenticate } from "../middleware/authenticate.js";
 import { HttpError } from "../errors/http-error.js";
 import { validateRequest } from "../validation/validate-request.js";
-import { addReviewSchema, productIdSchema, getProductsQuerySchema } from "../validation/product-schemas.js";
+import { addReviewSchema, productIdSchema, getProductsQuerySchema, getFeaturedProductsQuerySchema } from "../validation/product-schemas.js";
 import { getAllProducts, getProductById, getProductReviews, addProductReview, getFeaturedProducts } from "../services/products-service.js";
 
 const router = Router();
@@ -14,7 +14,8 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/featured", async (req, res) => {
-  const limit = req.query.limit ? Number(req.query.limit) : 5;
+  const payload = validateRequest(getFeaturedProductsQuerySchema, req.query);
+  const limit = payload.limit ?? 5;
   const products = await getFeaturedProducts(limit);
   res.json(products);
 });

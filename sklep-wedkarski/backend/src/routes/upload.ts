@@ -28,7 +28,7 @@ const upload = multer({
     if (mimetype && extname) {
       cb(null, true);
     } else {
-      cb(new Error("Only image files are allowed"));
+      cb(new HttpError(400, "Only image files are allowed"));
     }
   },
 });

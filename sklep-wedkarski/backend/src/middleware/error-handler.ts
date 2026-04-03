@@ -1,4 +1,5 @@
 import type { ErrorRequestHandler } from "express";
+import { MulterError } from "multer";
 import { HttpError } from "../errors/http-error.js";
 
 const hasPrismaCode = (error: unknown, code: string): boolean => {
@@ -22,6 +23,20 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, _next) => {
   if (hasPrismaCode(error, "P2002")) {
     res.status(409).json({
       message: "Resource already exists",
+    });
+    return;
+  }
+
+  if (error instanceof MulterError) {
+    if (error.code === "LIMIT_FILE_SIZE") {
+      res.status(413).json({
+        message: "Image file is too large",
+      });
+      return;
+    }
+
+    res.status(400).json({
+      message: error.message,
     });
     return;
   }

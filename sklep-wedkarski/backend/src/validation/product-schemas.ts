@@ -56,6 +56,10 @@ export const getProductsQuerySchema = z.object({
   limit: z.coerce.number().int().positive().optional(),
 });
 
+export const getFeaturedProductsQuerySchema = z.object({
+  limit: z.coerce.number().int().positive().max(100).optional(),
+});
+
 export const getPromotionsQuerySchema = z.object({
   search: z.string().optional(),
   category: z.coerce.number().int().positive().optional(),
