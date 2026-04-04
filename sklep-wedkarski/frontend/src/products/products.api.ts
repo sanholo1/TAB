@@ -2,6 +2,7 @@ import type { Product, Category, Review } from "./products.types";
 
 const BASE_URL = "http://localhost:3000";
 
+const getToken = () => localStorage.getItem("auth_token");
  
 export async function fetchProducts(params?: {
   search?: string;
@@ -48,9 +49,15 @@ export async function fetchCategories(): Promise<Category[]> {
 
 
 export async function addProductReview(id: number, data: { rating: number, comment: string }): Promise<Review> {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  const token = getToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${BASE_URL}/products/${id}/reviews`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify({
       ocena: data.rating,
       komentarz: data.comment
@@ -62,11 +69,70 @@ export async function addProductReview(id: number, data: { rating: number, comme
 
 
 export async function addToCart(id_przedmiotu: number, ilosc: number) {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  const token = getToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${BASE_URL}/cart`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify({ id_przedmiotu, ilosc })
   });
   if (!res.ok) throw new Error("Failed to add to cart");
+  return res.json();
+}
+
+
+export async function fetchFeaturedProducts(limit: number = 5): Promise<Product[]> {
+  const res = await fetch(`${BASE_URL}/products/featured?limit=${limit}`);
+  if (!res.ok) throw new Error("Failed to fetch featured products");
+  return res.json();
+}
+
+
+export async function getCart() {
+  const headers: HeadersInit = {};
+  const token = getToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${BASE_URL}/cart`, { headers });
+  if (!res.ok) throw new Error("Failed to fetch cart");
+  return res.json();
+}
+
+
+export async function removeFromCart(id_przedmiotu: number) {
+  const headers: HeadersInit = {};
+  const token = getToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${BASE_URL}/cart/${id_przedmiotu}`, {
+    method: 'DELETE',
+    headers,
+  });
+  if (!res.ok) throw new Error("Failed to remove from cart");
+}
+
+
+export async function mergeCart(items: Array<{ id_przedmiotu: number; ilosc: number }>) {
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  const token = getToken();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${BASE_URL}/cart/merge`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ items }),
+  });
+
+  if (!res.ok) throw new Error("Failed to merge cart");
   return res.json();
 }

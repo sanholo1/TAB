@@ -8,6 +8,7 @@ export const createProductSchema = z.object({
   cena_prom: z.number().nullable().optional(),
   ilosc: z.number().int().min(0, "Quantity must be non-negative"),
   id_kategorii: z.number().int().positive("Invalid category ID"),
+  zdjecie_url: z.string().max(500, "Image URL is too long").nullable().optional(),
 });
 
 export const updateProductSchema = z.object({
@@ -18,6 +19,7 @@ export const updateProductSchema = z.object({
   cena_prom: z.number().nullable().optional(),
   ilosc: z.number().int().min(0, "Quantity must be non-negative").optional(),
   id_kategorii: z.number().int().positive("Invalid category ID").optional(),
+  zdjecie_url: z.string().max(500, "Image URL is too long").nullable().optional(),
 });
 
 export const setPromotionSchema = z.object({
@@ -26,6 +28,10 @@ export const setPromotionSchema = z.object({
 
 export const updateStockSchema = z.object({
   ilosc: z.number().int().min(0, "Quantity must be non-negative"),
+});
+
+export const setProductVisibilitySchema = z.object({
+  aktywny: z.boolean(),
 });
 
 export const addReviewSchema = z.object({
@@ -48,4 +54,24 @@ export const getProductsQuerySchema = z.object({
   max_price: z.coerce.number().nonnegative().optional(),
   price: z.string().optional(),
   limit: z.coerce.number().int().positive().optional(),
+});
+
+export const getFeaturedProductsQuerySchema = z.object({
+  limit: z.coerce.number().int().positive().max(100).optional(),
+});
+
+export const getPromotionsQuerySchema = z.object({
+  search: z.string().optional(),
+  category: z.coerce.number().int().positive().optional(),
+  status: z.enum(["active", "inactive", "all"]).optional(),
+  limit: z.coerce.number().int().positive().max(200).optional(),
+});
+
+const promotionItemSchema = z.object({
+  id_przedmiotu: z.coerce.number().int().positive("Invalid product ID"),
+  cena_prom: z.coerce.number().positive("Promotional price must be positive").nullable(),
+});
+
+export const bulkSetPromotionSchema = z.object({
+  items: z.array(promotionItemSchema).min(1, "At least one item is required").max(200, "Too many items"),
 });

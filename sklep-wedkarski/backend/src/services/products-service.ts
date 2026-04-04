@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import type { GetAllProductsParams } from "../types/products.js";
 
 export const getAllProducts = async ({ search, category, min_price, max_price, price, limit }: GetAllProductsParams) => {
-  const where: Prisma.PrzedmiotyWhereInput = {};
+  const where: Prisma.PrzedmiotyWhereInput = { aktywny: true };
 
   if (search) {
     where.nazwa = { contains: search };
@@ -23,27 +23,18 @@ export const getAllProducts = async ({ search, category, min_price, max_price, p
     if (price === "high") where.cena_sprzedazy = { gt: 200 };
   }
 
-  return prisma.przedmioty.findMany({ where, ...(limit ? { take: limit } : {}) });
+  return prisma.przedmioty.findMany({ 
+    where, 
+    include: { kategoria: true },
+    ...(limit ? { take: limit } : {}) 
+  });
 };
 
 export const getProductById = async (id: number) => {
-  return prisma.przedmioty.findUnique({ where: { id_przedmiotu: id } });
-};
-
-export const createProduct = async (data: Prisma.PrzedmiotyUncheckedCreateInput) => {
-  return prisma.przedmioty.create({ data });
-};
-
-export const updateProduct = async (id: number, data: Prisma.PrzedmiotyUncheckedUpdateInput) => {
-  return prisma.przedmioty.update({ where: { id_przedmiotu: id }, data });
-};
-
-export const deleteProduct = async (id: number) => {
-  return prisma.przedmioty.delete({ where: { id_przedmiotu: id } });
-};
-
-export const setPromotion = async (id: number, data: Prisma.PrzedmiotyUpdateInput) => {
-  return prisma.przedmioty.update({ where: { id_przedmiotu: id }, data });
+  return prisma.przedmioty.findUnique({ 
+    where: { id_przedmiotu: id },
+    include: { kategoria: true }
+  });
 };
 
 export const getProductReviews = async (id: number) => {
@@ -53,5 +44,17 @@ export const getProductReviews = async (id: number) => {
 export const addProductReview = async (productId: number, userId: number, rating: number, comment: string) => {
   return prisma.opinia.create({
     data: { id_przedmiotu: productId, id_uzytkownika: userId, ocena: rating, komentarz: comment },
+  });
+};
+
+export const getFeaturedProducts = async (limit: number = 5) => {
+  return prisma.przedmioty.findMany({
+    where: {
+      aktywny: true,
+      cena_prom: { not: null }
+    },
+    include: { kategoria: true },
+    take: limit,
+    orderBy: { cena_sprzedazy: 'desc' }
   });
 };
