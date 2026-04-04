@@ -1,8 +1,13 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { registerUser } from "./auth.api";
+import { loginUser, registerUser } from "./auth.api";
+import type { User } from "./auth.types";
 
-export default function RegisterPage() {
+interface RegisterPageProps {
+  onLogin: (user: User, token: string) => void;
+}
+
+export default function RegisterPage({ onLogin }: RegisterPageProps) {
   const [username, setUsername] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -10,14 +15,12 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
-    setSuccess(null);
 
     if (password !== confirmPassword) {
       setError("Hasła nie są zgodne");
@@ -27,9 +30,14 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      await registerUser({ username, firstName, lastName, email, password, confirmPassword });
-      setSuccess("Rejestracja zakończona sukcesem. Możesz teraz się zalogować.");
-      setTimeout(() => navigate("/login"), 1200);
+      const result = await registerUser({ username, firstName, lastName, email, password, confirmPassword });
+      if (result.user && result.accessToken) {
+        onLogin(result.user, result.accessToken);
+      } else {
+        const loginResult = await loginUser({ email, password });
+        onLogin(loginResult.user, loginResult.accessToken);
+      }
+      navigate("/profile");
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -123,7 +131,6 @@ export default function RegisterPage() {
         </div>
 
         {error && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
-        {success && <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{success}</p>}
 
         <button
           type="submit"

@@ -21,6 +21,16 @@ const HomePage: React.FC = () => {
         setFeaturedProducts(products.slice(0, 4));
       })
       .catch((err) => console.error("Błąd pobierania produktów:", err));
+
+    const handleInventoryChange = () => {
+      fetchProducts()
+        .then((products) => setFeaturedProducts(products.slice(0, 4)))
+        .catch((err) => console.error("Błąd pobierania produktów:", err));
+    };
+
+    window.addEventListener("inventory:changed", handleInventoryChange);
+
+    return () => window.removeEventListener("inventory:changed", handleInventoryChange);
   }, []);
 
   const goToCategory = (categoryId: number) => {

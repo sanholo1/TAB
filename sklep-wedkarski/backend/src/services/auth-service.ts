@@ -74,7 +74,7 @@ const getDefaultRoleId = async (): Promise<number> => {
   return role.id_roli;
 };
 
-export const registerUser = async (payload: RegisterInput): Promise<void> => {
+export const registerUser = async (payload: RegisterInput): Promise<{ accessToken: string; user: PublicUser }> => {
   const existingUser = await prisma.uzytkownik.findFirst({
     where: {
       OR: [{ email: payload.email }, { nazwa: payload.username }],
@@ -92,7 +92,7 @@ export const registerUser = async (payload: RegisterInput): Promise<void> => {
   const roleId = await getDefaultRoleId();
 
   try {
-    await prisma.uzytkownik.create({
+    const user = await prisma.uzytkownik.create({
       data: {
         nazwa: payload.username,
         imie: payload.firstName,
@@ -101,7 +101,18 @@ export const registerUser = async (payload: RegisterInput): Promise<void> => {
         haslo: passwordHash,
         id_roli: roleId,
       },
+      select: publicUserSelect,
     });
+
+    const accessToken = signAuthToken({
+      userId: user.id_uzytkownika,
+      roleId: user.id_roli,
+    });
+
+    return {
+      accessToken,
+      user: toPublicUser(user),
+    };
   } catch (error) {
     if (
       typeof error === "object" &&

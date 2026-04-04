@@ -8,7 +8,7 @@ const router = Router();
 router.post("/register", async (req, res) => {
   const payload = validateRequest(registerSchema, req.body);
 
-  await registerUser({
+  const result = await registerUser({
     username: payload.username,
     firstName: payload.firstName,
     lastName: payload.lastName,
@@ -18,7 +18,9 @@ router.post("/register", async (req, res) => {
 
   res.status(201).json({
     message: "Registration successful",
-    redirectTo: "/login",
+    redirectTo: "/profile",
+    accessToken: result.accessToken,
+    user: result.user,
   });
 });
 
