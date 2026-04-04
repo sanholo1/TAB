@@ -31,8 +31,16 @@ npm run prisma:seed
 ```
 Będziecie mieli testowego użytkownika, produkt, kategorię, koszyk i role.
 
----
+## Konta testowe po seedzie
 
+Haslo dla wszystkich kont: Tajne oczywiście ;)
+
+- Klient: `klient@sklep.pl`
+- Sprzedawca: `sprzedawca@sklep.pl`
+- Administrator: `admin@sklep.pl`
+
+---
+  
 ## Struktura
 
 ### Backend (Katalog `backend/`)
@@ -44,8 +52,14 @@ Struktura plików — ludzie z frontu też możecie ustawić pod siebie.
 W produktach jest zrobione API, typy, strona główna produktów i strona detalu.
 Jest tam surowy szkielet graficzny, trzeba go ładniej zrobić. Dodać wstawianie opinii, dodawanie do koszyka, filtrowanie cen. 
 
-### Postępy prac:
-NIEAKTUALNE POSTĘPY 04.04.2026
+## Postępy prac:
+
+### Magazyn:
+- Dodano panel magazynowy w frontendzie (`/inventory`).
+- Dodano filtrowanie, sortowanie i akcje na produktach (dodawanie, edycja, aktywacja/dezaktywacja, oznaczanie brakow, aktualizacja stanu, usuwanie oferty).
+- Uprawnienia sa rozdzielone po rolach (Sprzedawca / Administrator).
+  
+### NIEAKTUALNE POSTĘPY 04.04.2026
 1. **`products.api.ts`** – Pełna integracja z backendem. Funkcje **`addProductReview(id, data)`** oraz **`addToCart(id, ilosc)`** działają z nową strukturą bazy.
 2. **`Autoryzacja`** – Mamy gotowy moduł rejestracji i logowania na backendzie. 
 3. **`Filtrowanie`** – Na stronie produktów działa już filtrowanie po cenie i kategoriach.
