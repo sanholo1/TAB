@@ -49,9 +49,11 @@ model Przedmioty {
   id_przedmiotu         Int                    @id @default(autoincrement())
   nazwa                 String                 @db.VarChar(191)
   opis                  String?                @db.Text
+  zdjecie_url           String?                @db.VarChar(500)
   cena_sprzedazy        Decimal                @db.Decimal(10, 2)
   id_kategorii          Int
   cena_prom             Decimal?               @db.Decimal(10, 2)
+  aktywny               Boolean                @default(true)
   ilosc                 Int
   cena_zakupu           Decimal                @db.Decimal(10, 2)
   kategoria             Kategoria              @relation(fields: [id_kategorii], references: [id_kategorii])
