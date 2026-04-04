@@ -56,6 +56,6 @@ Jest tam surowy szkielet graficzny, trzeba go ładniej zrobić. Dodać wstawiani
 - [ ] **Wyświetlanie Obrazków**: Podmień tymczasowe placeholdery tekstowe i SVG na tagi `<img>` uderzające we właściwy format pliku.
 - [ ] **Opinie**: Na stronie `ProductDetailPage.tsx` dodaj prosty formularz na ocenę i komentarz. Podepnij pod niego przygotowaną funkcję `addProductReview()`.
 - [ ] **Koszyk**: Pod przycisk "Dodaj do koszyka" podepnij nową funkcję `addToCart()`. (System będzie wrzucał itemy na sztywno do konta niezalgowanego uzytkownika lub do zalogowanego uzytkwnika).
-- [ ] **Koszyk gościa (ważne)**: Aktualnie niezalogowani użytkownicy mają wspólny koszyk (ID=1). Trzeba to zmienić tak, aby każdy niezalogowany miał osobny koszyk.
+- [ ] **Koszyk gościa (ważne)**: Aktualnie gość nie jest w stanie nic dodac do koszyka, konczy się to blędem. Trzeba zaimplenetowac po stronie frontu koszyk gościa, który będzie sie przenosił do koszyka uzytkownika po zalogowaniu. Wszystkie potrzebne funkcje powinny być dostępne. Backend obsługuje jedynie koszyk zalogowanych.
 - [ ] **Co Chcesz**: Zrób to co chcesz, pisz dc jak coś nie trybi.
 - [ ] 
