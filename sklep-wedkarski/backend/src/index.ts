@@ -11,6 +11,7 @@ import cartRouter from "./routes/cart.js";
 import authRouter from "./routes/auth.js";
 import profileRouter from "./routes/profile.js";
 import uploadRouter from "./routes/upload.js";
+import ordersRouter from "./routes/orders.js";
 import { errorHandler } from "./middleware/error-handler.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -31,6 +32,7 @@ app.use("/cart", cartRouter);
 app.use("/auth", authRouter);
 app.use("/profile", profileRouter);
 app.use("/upload", uploadRouter);
+app.use("/orders", ordersRouter);
 app.use(errorHandler);
 
 app.listen(port, () => {

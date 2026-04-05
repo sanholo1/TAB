@@ -142,5 +142,27 @@ if [ -n "$FIRST_PRODUCT_ID" ] && [ "$FIRST_PRODUCT_ID" != "$BODY" ]; then
   assert_status "204" "$STATUS" "DELETE /cart/:id"
 fi
 
+# ── Orders ─────────────────────────────────────────────────────────────────────
+echo ""
+echo "=== ORDERS ==="
+
+if [ -n "$FIRST_PRODUCT_ID" ] && [ "$FIRST_PRODUCT_ID" != "$BODY" ]; then
+  request "POST" "/cart" "{\"id_przedmiotu\":$FIRST_PRODUCT_ID,\"ilosc\":1}" "$TOKEN"
+  assert_status "201" "$STATUS" "setup: POST /cart add product for order"
+
+  request "POST" "/orders" "{}" "$TOKEN"
+  assert_status "400" "$STATUS" "POST /orders invalid payload"
+
+  request "POST" "/orders" "{\"kraj\":\"Polska\",\"miasto\":\"Warszawa\",\"kod_pocztowy\":\"00-001\",\"ulica\":\"Prosta\",\"nr_domu\":\"10A\"}" "$TOKEN"
+  assert_status "201" "$STATUS" "POST /orders create order"
+  printf '%s\n' "$BODY" | grep -q '"id_transakcji":' || { echo "[FAIL] /orders should return created order"; exit 1; }
+  echo "[OK] /orders returns created order"
+
+  request "GET" "/cart" "" "$TOKEN"
+  assert_status "200" "$STATUS" "GET /cart after order"
+  printf '%s\n' "$BODY" | grep -q '^\[\]$' || { echo "[FAIL] /cart should be empty after order"; exit 1; }
+  echo "[OK] /cart is empty after order"
+fi
+
 echo ""
 echo "All API checks passed."
