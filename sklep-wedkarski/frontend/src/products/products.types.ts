@@ -4,6 +4,7 @@ export interface Product {
   nazwa: string;
   opis: string | null;
   cena_sprzedazy: number;
+  cena_zakupu: number;
   cena_prom: number | null;
   ilosc: number;
   id_kategorii: number;

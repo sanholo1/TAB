@@ -20,12 +20,29 @@ const getAuthHeaders = (withJsonContentType: boolean = false): HeadersInit => {
   return headers;
 };
 
+const getErrorMessage = async (res: Response, fallback: string): Promise<string> => {
+  if (res.status === 403) {
+    return "Brak uprawnień do wykonania tej akcji.";
+  }
+
+  try {
+    const payload = (await res.json()) as { message?: string };
+    if (payload?.message) {
+      return payload.message.replace(/—/g, "-");
+    }
+  } catch {
+    // Ignore malformed or empty response body.
+  }
+
+  return fallback;
+};
+
 export async function fetchInventoryProducts(): Promise<InventoryProduct[]> {
   const res = await fetch(`${BASE_URL}/inventory/products`, {
     headers: getAuthHeaders(),
   });
 
-  if (!res.ok) throw new Error("Failed to fetch inventory products");
+  if (!res.ok) throw new Error(await getErrorMessage(res, "Failed to fetch inventory products"));
   return res.json();
 }
 
@@ -39,7 +56,7 @@ export async function uploadInventoryImage(file: File): Promise<{ url: string }>
     body: formData,
   });
 
-  if (!res.ok) throw new Error("Failed to upload image");
+  if (!res.ok) throw new Error(await getErrorMessage(res, "Failed to upload image"));
   return res.json();
 }
 
@@ -50,7 +67,7 @@ export async function createInventoryProduct(payload: InventoryProductPayload): 
     body: JSON.stringify(payload),
   });
 
-  if (!res.ok) throw new Error("Failed to create inventory product");
+  if (!res.ok) throw new Error(await getErrorMessage(res, "Failed to create inventory product"));
   return res.json();
 }
 
@@ -61,7 +78,7 @@ export async function updateInventoryProduct(id: number, payload: Partial<Invent
     body: JSON.stringify(payload),
   });
 
-  if (!res.ok) throw new Error("Failed to update inventory product");
+  if (!res.ok) throw new Error(await getErrorMessage(res, "Failed to update inventory product"));
   return res.json();
 }
 
@@ -72,7 +89,7 @@ export async function updateInventoryStock(id: number, ilosc: number): Promise<P
     body: JSON.stringify({ ilosc }),
   });
 
-  if (!res.ok) throw new Error("Failed to update inventory stock");
+  if (!res.ok) throw new Error(await getErrorMessage(res, "Failed to update inventory stock"));
   return res.json();
 }
 
@@ -82,7 +99,7 @@ export async function deleteInventoryProduct(id: number): Promise<void> {
     headers: getAuthHeaders(),
   });
 
-  if (!res.ok) throw new Error("Failed to delete inventory product");
+  if (!res.ok) throw new Error(await getErrorMessage(res, "Failed to delete inventory product"));
 }
 
 export async function setInventoryProductVisibility(id: number, aktywny: boolean): Promise<InventoryProduct> {
@@ -92,7 +109,7 @@ export async function setInventoryProductVisibility(id: number, aktywny: boolean
     body: JSON.stringify({ aktywny }),
   });
 
-  if (!res.ok) throw new Error("Failed to change product visibility");
+  if (!res.ok) throw new Error(await getErrorMessage(res, "Failed to change product visibility"));
   return res.json();
 }
 
@@ -103,7 +120,7 @@ export async function setInventoryProductPromotion(id: number, cena_prom: number
     body: JSON.stringify({ cena_prom }),
   });
 
-  if (!res.ok) throw new Error("Failed to set product promotion");
+  if (!res.ok) throw new Error(await getErrorMessage(res, "Failed to set product promotion"));
   return res.json();
 }
 
@@ -113,6 +130,6 @@ export async function clearInventoryProductPromotion(id: number): Promise<Produc
     headers: getAuthHeaders(),
   });
 
-  if (!res.ok) throw new Error("Failed to clear product promotion");
+  if (!res.ok) throw new Error(await getErrorMessage(res, "Failed to clear product promotion"));
   return res.json();
 }

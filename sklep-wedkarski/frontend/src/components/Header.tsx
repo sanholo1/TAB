@@ -11,6 +11,8 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ user, onLogout, search, setSearch, onSearch }) => {
+  const canAccessInventory = user?.roleId === 2 || user?.roleId === 3;
+
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-slate-50/90 backdrop-blur-xl shadow-sm">
       <div className="mx-auto flex flex-wrap items-center gap-4 px-4 py-4 max-w-7xl">
@@ -39,6 +41,18 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout, search, setSearch, onSe
           >
             Profil
           </NavLink>
+          {canAccessInventory && (
+            <NavLink
+              to="/inventory"
+              className={({ isActive }) =>
+                `rounded-full px-3 py-2 text-sm transition ${
+                  isActive ? "bg-sky-700 text-white" : "text-slate-600 hover:text-slate-900"
+                }`
+              }
+            >
+              Magazyn
+            </NavLink>
+          )}
         </nav>
 
         <div className="flex flex-1 min-w-[240px] items-center gap-2">

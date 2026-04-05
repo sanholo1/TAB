@@ -29,6 +29,24 @@ export default function ProductsPage() {
   }, [searchParam, categoryIdParam, priceParam, minPriceParam, maxPriceParam]);
 
   useEffect(() => {
+    const handleInventoryChange = () => {
+      fetchProducts({
+        search: searchParam ?? undefined,
+        category: categoryIdParam ? Number(categoryIdParam) : undefined,
+        price: priceParam ?? undefined,
+        min_price: minPriceParam ? Number(minPriceParam) : undefined,
+        max_price: maxPriceParam ? Number(maxPriceParam) : undefined,
+      })
+        .then(setProducts)
+        .catch(console.error);
+    };
+
+    window.addEventListener("inventory:changed", handleInventoryChange);
+
+    return () => window.removeEventListener("inventory:changed", handleInventoryChange);
+  }, [searchParam, categoryIdParam, priceParam, minPriceParam, maxPriceParam]);
+
+  useEffect(() => {
     fetchCategories().then(setCategories).catch(console.error);
   }, []);
 
