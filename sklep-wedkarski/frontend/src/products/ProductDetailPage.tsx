@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { fetchProductById, fetchProductReviews } from "./products.api";
+import { addToCart, fetchProductById, fetchProductReviews } from "./products.api";
 import type { Product, Review } from "./products.types";
 
 export default function ProductDetailPage() {
@@ -47,9 +47,35 @@ export default function ProductDetailPage() {
       : `http://localhost:3000${product.zdjecie_url}`
     : null;
 
+  // Obsługa dodawania do koszyka, na razie minimum dla testu czy to wgl dziala tak jak mysle
+  // TODO: walidacja ilosci
+  const handleAddToCart = async () => {
+    const token = localStorage.getItem("auth_token");
+    if (!token)
+    {
+      let guest_cart = localStorage.getItem("Guest_cart") || "[]";
+      let guest_cart_array = JSON.parse(guest_cart);
+      const existingItem = guest_cart_array.find((item: any) => item.id_przedmiotu === product.id_przedmiotu);
+      if (existingItem)
+      {
+        existingItem.ilosc++;
+      }
+      else
+      {
+        guest_cart_array.push({ id_przedmiotu: product.id_przedmiotu, ilosc: 1 });
+      }
+      guest_cart = JSON.stringify(guest_cart_array);
+      localStorage.setItem("Guest_cart", guest_cart);
+    }
+    else    
+    {
+      await addToCart(product.id_przedmiotu, 1); // Na razie dodajemy na sztywno 1 sztukę, rozbuduję o możliwość wyboru ilości
+    }
+  }
+
   return (
     <div className="p-4 rounded-lg border border-gray-300 min-h-screen bg-white shadow-xl">
-      <button className="bg-sky-700 p-2.5 rounded-full">
+      <button className="bg-sky-700 p-2.5 rounded-full ">
         <Link to="/products" className="text-white">&larr; Powrót do listy </Link>
       </button>
       {/* Główny kontener 2 kolumny */}
@@ -67,7 +93,7 @@ export default function ProductDetailPage() {
         {/* Prawa: Informacje */}
         <div className=" bg-gray-50 border border-gray-300 w-full md:w-1/2 flex flex-col gap-4 p-8">
           <div className="">
-            <span className="text-sm text-gray-500 uppercase">Kategoria {product.id_kategorii}</span>
+            <span className="text-sm text-gray-500 uppercase">Kategoria: {product.kategoria?.nazwa}</span>
             <h1 className="text-4xl font-bold">{product.nazwa}</h1>
           </div>
 
@@ -91,7 +117,7 @@ export default function ProductDetailPage() {
             </div>
             
             <button 
-              onClick={() => alert("TODO: Wrzuć tu koszyk")} 
+              onClick={() => handleAddToCart()} 
               disabled={product.ilosc <= 0}
               className={`py-6 px-8 !font-bold !text-lg border rounded-2xl whitespace-nowrap ${product.ilosc > 0 ? 'bg-sky-700 border-blue-400 text-white' : 'bg-gray-200 border-gray-400 text-gray-500'}`}
             >
