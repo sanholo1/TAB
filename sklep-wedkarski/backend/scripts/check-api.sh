@@ -93,9 +93,9 @@ printf '%s\n' "$BODY" | grep -q '\[' || { echo "[FAIL] /products should return a
 echo "[OK] /products returns array"
 ALL_PRODUCTS_BODY="$BODY"
 
-FIRST_PRODUCT_ID="$(node -e 'const items = JSON.parse(process.argv[1]); const product = items.find((item) => Number(item.ilosc) > 0); if (product) process.stdout.write(String(product.id_przedmiotu));' "$ALL_PRODUCTS_BODY")"
+FIRST_PRODUCT_ID="$(node -e 'const items = JSON.parse(process.argv[1]); const product = items.find((item) => Number(item.ilosc) > 2); if (product) process.stdout.write(String(product.id_przedmiotu));' "$ALL_PRODUCTS_BODY")"
 if [ -z "$FIRST_PRODUCT_ID" ]; then
-  echo "[FAIL] no in-stock product available for cart/order checks"
+  echo "[FAIL] no product with stock above 2 available for cart/order checks"
   exit 1
 fi
 
@@ -195,8 +195,52 @@ if [ -z "$GUEST_TOKEN" ] || [ "$GUEST_TOKEN" = "$BODY" ]; then
 fi
 echo "[OK] setup: guest token obtained"
 
+request "GET" "/cart" "" "$GUEST_TOKEN"
+assert_status "200" "$STATUS" "GET /cart guest before create"
+GUEST_CART_IDS="$(node -e 'const items = JSON.parse(process.argv[1]); process.stdout.write(items.map((item) => String(item.id_przedmiotu)).join(" "));' "$BODY")"
+if [ -n "$GUEST_CART_IDS" ]; then
+  for CART_ITEM_ID in $GUEST_CART_IDS; do
+    request "DELETE" "/cart/$CART_ITEM_ID" "" "$GUEST_TOKEN"
+    assert_status "204" "$STATUS" "setup: DELETE /cart/$CART_ITEM_ID guest cleanup"
+  done
+fi
+
+request "POST" "/cart" "{\"id_przedmiotu\":$FIRST_PRODUCT_ID,\"ilosc\":1}" "$GUEST_TOKEN"
+if [ "$STATUS" != "201" ] && [ "$STATUS" != "200" ]; then
+  echo "[FAIL] setup: POST /cart add product for guest order -> expected 201 or 200, got $STATUS"
+  echo "Body: $BODY"
+  exit 1
+fi
+echo "[OK] setup: POST /cart add product for guest order -> $STATUS"
+
 request "POST" "/orders" "{\"kraj\":\"Polska\",\"miasto\":\"Warszawa\",\"kod_pocztowy\":\"00-001\",\"ulica\":\"Prosta\",\"nr_domu\":\"10A\"}" "$GUEST_TOKEN"
-assert_status "403" "$STATUS" "POST /orders guest cannot create order"
+assert_status "201" "$STATUS" "POST /orders guest create order"
+printf '%s\n' "$BODY" | grep -q '"id_transakcji":' || { echo "[FAIL] guest /orders should return created order"; exit 1; }
+echo "[OK] guest /orders returns created order"
+
+GUEST_ORDER_ID="$(printf '%s\n' "$BODY" | sed -nE 's/.*"id_transakcji":([0-9]+).*/\1/p' | head -1)"
+
+request "GET" "/cart" "" "$GUEST_TOKEN"
+assert_status "200" "$STATUS" "GET /cart guest after order"
+printf '%s\n' "$BODY" | grep -q '^\[\]$' || { echo "[FAIL] guest /cart should be empty after order"; exit 1; }
+echo "[OK] guest /cart is empty after order"
+
+request "GET" "/orders" "" "$GUEST_TOKEN"
+assert_status "200" "$STATUS" "GET /orders guest after create"
+printf '%s\n' "$BODY" | grep -q "\"id_transakcji\":$GUEST_ORDER_ID" || { echo "[FAIL] guest /orders history should include created order"; exit 1; }
+echo "[OK] guest /orders history contains created order"
+
+request "POST" "/orders/guest" "{\"kraj\":\"Polska\",\"miasto\":\"Warszawa\",\"kod_pocztowy\":\"00-001\",\"ulica\":\"Prosta\",\"nr_domu\":\"10A\",\"items\":[{\"id_przedmiotu\":$FIRST_PRODUCT_ID,\"ilosc\":1}]}"
+assert_status "201" "$STATUS" "POST /orders/guest anonymous create order"
+printf '%s\n' "$BODY" | grep -q '"id_transakcji":' || { echo "[FAIL] anonymous guest /orders/guest should return created order"; exit 1; }
+echo "[OK] anonymous guest /orders/guest returns created order"
+
+ANON_GUEST_ORDER_ID="$(printf '%s\n' "$BODY" | sed -nE 's/.*"id_transakcji":([0-9]+).*/\1/p' | head -1)"
+
+request "GET" "/orders" "" "$GUEST_TOKEN"
+assert_status "200" "$STATUS" "GET /orders guest after anonymous create"
+printf '%s\n' "$BODY" | grep -q "\"id_transakcji\":$ANON_GUEST_ORDER_ID" || { echo "[FAIL] guest /orders history should include anonymous created order"; exit 1; }
+echo "[OK] guest /orders history contains anonymous created order"
 
 echo ""
 echo "All API checks passed."

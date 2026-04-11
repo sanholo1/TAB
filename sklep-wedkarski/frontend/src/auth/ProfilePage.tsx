@@ -141,7 +141,7 @@ export default function ProfilePage({ currentUser, onUpdateUser, onLogout }: Pro
           <h2 className="mt-3 text-2xl font-semibold text-slate-900">Historia zamówień</h2>
           <p className="mt-2 text-slate-600">
             {isGuestAccount
-              ? "Konto gościa służy tylko do przeglądania. Składanie zamówień jest zablokowane."
+              ? "Konto gościa może składać zamówienia i sprawdzać ich historię."
               : "Tutaj znajdziesz swoje ostatnie zamówienia i ich szczegóły."}
           </p>
         </div>
