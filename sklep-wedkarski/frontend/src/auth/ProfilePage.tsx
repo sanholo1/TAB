@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchProfile, updateProfile } from "./auth.api";
+import { fetchOrders, fetchProfile, updateProfile } from "./auth.api";
 import type { User } from "./auth.types";
+import type { Order } from "../orders/orders.types";
 
 interface ProfilePageProps {
   currentUser: User | null;
@@ -20,7 +21,10 @@ export default function ProfilePage({ currentUser, onUpdateUser, onLogout }: Pro
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
   const navigate = useNavigate();
+  const isGuestAccount = profile?.email === "gosc@sklep.pl" || profile?.username === "GoscNiezalogowany";
 
   useEffect(() => {
     const token = localStorage.getItem("auth_token");
@@ -29,32 +33,33 @@ export default function ProfilePage({ currentUser, onUpdateUser, onLogout }: Pro
       return;
     }
 
-    const loadProfile = async () => {
+    const loadData = async () => {
+      setOrdersLoading(true);
+
       try {
-        const result = await fetchProfile();
-        setProfile(result);
-        setUsername(result.username);
-        setFirstName(result.firstName);
-        setLastName(result.lastName);
-        setEmail(result.email);
+        const [nextProfile, nextOrders] = await Promise.all([
+          currentUser ? Promise.resolve(currentUser) : fetchProfile(),
+          fetchOrders(),
+        ]);
+
+        setProfile(nextProfile);
+        setUsername(nextProfile.username);
+        setFirstName(nextProfile.firstName);
+        setLastName(nextProfile.lastName);
+        setEmail(nextProfile.email);
+        setOrders(nextOrders);
       } catch (err) {
         if (err instanceof Error) {
           setError(err.message);
         } else {
           setError("Nie udało się pobrać profilu.");
         }
+      } finally {
+        setOrdersLoading(false);
       }
     };
 
-    if (!currentUser) {
-      loadProfile();
-    } else {
-      setProfile(currentUser);
-      setUsername(currentUser.username);
-      setFirstName(currentUser.firstName);
-      setLastName(currentUser.lastName);
-      setEmail(currentUser.email);
-    }
+    loadData();
   }, [currentUser, navigate]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -128,6 +133,57 @@ export default function ProfilePage({ currentUser, onUpdateUser, onLogout }: Pro
             <p className="mt-1 text-slate-600">{profile?.email}</p>
           </div>
         </div>
+      </section>
+
+      <section className="rounded-[2rem] border border-slate-200 bg-white/90 p-8 shadow-xl shadow-slate-300/20">
+        <div className="mb-6">
+          <p className="uppercase text-sm tracking-[0.3em] text-sky-600">Zamówienia</p>
+          <h2 className="mt-3 text-2xl font-semibold text-slate-900">Historia zamówień</h2>
+          <p className="mt-2 text-slate-600">
+            {isGuestAccount
+              ? "Konto gościa służy tylko do przeglądania. Składanie zamówień jest zablokowane."
+              : "Tutaj znajdziesz swoje ostatnie zamówienia i ich szczegóły."}
+          </p>
+        </div>
+
+        {ordersLoading ? (
+          <p className="text-slate-600">Ładowanie historii zamówień...</p>
+        ) : orders.length === 0 ? (
+          <div className="rounded-3xl bg-slate-50 p-5 text-slate-600">Brak zamówień do wyświetlenia.</div>
+        ) : (
+          <div className="space-y-4">
+            {orders.map((order) => (
+              <article key={order.id_transakcji} className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] text-sky-700">Zamówienie #{order.id_transakcji}</p>
+                    <h3 className="mt-2 text-xl font-semibold text-slate-900">{order.kwota_calkowita} zł</h3>
+                    <p className="mt-1 text-sm text-slate-600">
+                      Status: {order.stan} • {new Date(order.data).toLocaleString("pl-PL")}
+                    </p>
+                  </div>
+                  <div className="rounded-2xl bg-white px-4 py-3 text-sm text-slate-600">
+                    {order.adres.ulica} {order.adres.nr_domu}, {order.adres.kod_pocztowy} {order.adres.miasto}, {order.adres.kraj}
+                  </div>
+                </div>
+
+                <div className="mt-4 space-y-2">
+                  {order.przedmioty.map((item) => (
+                    <div
+                      key={`${order.id_transakcji}-${item.id_przedmiotu}`}
+                      className="flex flex-col gap-1 rounded-2xl bg-white px-4 py-3 text-sm text-slate-700 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <span className="font-medium text-slate-900">{item.przedmiot.nazwa}</span>
+                      <span>
+                        {item.liczba} szt. • {item.cena_przedmiotu} zł
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="rounded-[2rem] border border-slate-200 bg-white/90 p-8 shadow-xl shadow-slate-300/20">

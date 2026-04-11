@@ -4,6 +4,8 @@ import prisma from "../prisma/prisma.js";
 import type { CreateOrderSchema } from "../validation/order-schemas.js";
 
 const defaultOrderStatus = "zlozone";
+const guestAccountEmail = "gosc@sklep.pl";
+const guestAccountUsername = "GoscNiezalogowany";
 
 const orderInclude: Prisma.TransakcjaInclude = {
   adres: true,
@@ -19,8 +21,36 @@ const orderInclude: Prisma.TransakcjaInclude = {
   },
 };
 
+const assertUserCanCreateOrder = async (tx: Prisma.TransactionClient, userId: number) => {
+  const user = await tx.uzytkownik.findUnique({
+    where: { id_uzytkownika: userId },
+    select: {
+      email: true,
+      nazwa: true,
+    },
+  });
+
+  if (!user) {
+    throw new HttpError(404, "User not found");
+  }
+
+  if (user.email === guestAccountEmail || user.nazwa === guestAccountUsername) {
+    throw new HttpError(403, "Guest account cannot place orders");
+  }
+};
+
+export const getOrdersByUserId = async (userId: number) => {
+  return prisma.transakcja.findMany({
+    where: { id_uzytkownika: userId },
+    include: orderInclude,
+    orderBy: [{ data: "desc" }, { id_transakcji: "desc" }],
+  });
+};
+
 export const createOrderFromCart = async (userId: number, payload: CreateOrderSchema) => {
   return prisma.$transaction(async (tx) => {
+    await assertUserCanCreateOrder(tx, userId);
+
     const cartItems = await tx.koszyk.findMany({
       where: { id_uzytkownika: userId },
       include: {

@@ -1,12 +1,19 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/authenticate.js";
-import { createOrderFromCart } from "../services/orders-service.js";
+import { createOrderFromCart, getOrdersByUserId } from "../services/orders-service.js";
 import { createOrderSchema } from "../validation/order-schemas.js";
 import { validateRequest } from "../validation/validate-request.js";
 
 const router = Router();
 
 router.use(authenticate);
+
+router.get("/", async (req, res) => {
+  const userId = req.authUser!.userId;
+  const orders = await getOrdersByUserId(userId);
+
+  res.json(orders);
+});
 
 router.post("/", async (req, res) => {
   const userId = req.authUser!.userId;

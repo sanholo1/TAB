@@ -6,6 +6,9 @@ TS="$(date +%s)"
 TEST_EMAIL="apitest_${TS}@example.com"
 TEST_PASSWORD="Testpass1"
 TOKEN=""
+GUEST_TOKEN=""
+ALL_PRODUCTS_BODY=""
+FIRST_PRODUCT_ID=""
 
 STATUS=""
 BODY=""
@@ -88,6 +91,13 @@ request "GET" "/products"
 assert_status "200" "$STATUS" "GET /products"
 printf '%s\n' "$BODY" | grep -q '\[' || { echo "[FAIL] /products should return array"; exit 1; }
 echo "[OK] /products returns array"
+ALL_PRODUCTS_BODY="$BODY"
+
+FIRST_PRODUCT_ID="$(node -e 'const items = JSON.parse(process.argv[1]); const product = items.find((item) => Number(item.ilosc) > 0); if (product) process.stdout.write(String(product.id_przedmiotu));' "$ALL_PRODUCTS_BODY")"
+if [ -z "$FIRST_PRODUCT_ID" ]; then
+  echo "[FAIL] no in-stock product available for cart/order checks"
+  exit 1
+fi
 
 request "GET" "/products?search=a"
 assert_status "200" "$STATUS" "GET /products?search=a"
@@ -100,7 +110,6 @@ if [ -n "$FIRST_CATEGORY_ID" ] && [ "$FIRST_CATEGORY_ID" != "$BODY" ]; then
   assert_status "200" "$STATUS" "GET /products?category=$FIRST_CATEGORY_ID"
 fi
 
-FIRST_PRODUCT_ID="$(printf '%s\n' "$BODY" | sed -E 's/.*"id_przedmiotu":([0-9]+).*/\1/' | head -1)"
 if [ -n "$FIRST_PRODUCT_ID" ] && [ "$FIRST_PRODUCT_ID" != "$BODY" ]; then
   request "GET" "/products/$FIRST_PRODUCT_ID"
   assert_status "200" "$STATUS" "GET /products/$FIRST_PRODUCT_ID"
@@ -147,6 +156,11 @@ echo ""
 echo "=== ORDERS ==="
 
 if [ -n "$FIRST_PRODUCT_ID" ] && [ "$FIRST_PRODUCT_ID" != "$BODY" ]; then
+  request "GET" "/orders" "" "$TOKEN"
+  assert_status "200" "$STATUS" "GET /orders before create"
+  printf '%s\n' "$BODY" | grep -q '\[' || { echo "[FAIL] /orders should return array"; exit 1; }
+  echo "[OK] /orders returns array"
+
   request "POST" "/cart" "{\"id_przedmiotu\":$FIRST_PRODUCT_ID,\"ilosc\":1}" "$TOKEN"
   assert_status "201" "$STATUS" "setup: POST /cart add product for order"
 
@@ -158,11 +172,31 @@ if [ -n "$FIRST_PRODUCT_ID" ] && [ "$FIRST_PRODUCT_ID" != "$BODY" ]; then
   printf '%s\n' "$BODY" | grep -q '"id_transakcji":' || { echo "[FAIL] /orders should return created order"; exit 1; }
   echo "[OK] /orders returns created order"
 
+  CREATED_ORDER_ID="$(printf '%s\n' "$BODY" | sed -nE 's/.*"id_transakcji":([0-9]+).*/\1/p' | head -1)"
+
   request "GET" "/cart" "" "$TOKEN"
   assert_status "200" "$STATUS" "GET /cart after order"
   printf '%s\n' "$BODY" | grep -q '^\[\]$' || { echo "[FAIL] /cart should be empty after order"; exit 1; }
   echo "[OK] /cart is empty after order"
+
+  request "GET" "/orders" "" "$TOKEN"
+  assert_status "200" "$STATUS" "GET /orders after create"
+  printf '%s\n' "$BODY" | grep -q "\"id_transakcji\":$CREATED_ORDER_ID" || { echo "[FAIL] /orders history should include created order"; exit 1; }
+  echo "[OK] /orders history contains created order"
 fi
+
+request "POST" "/auth/login" "{\"email\":\"gosc@sklep.pl\",\"password\":\"haslo123\"}"
+assert_status "200" "$STATUS" "setup: login guest user"
+GUEST_TOKEN="$(printf '%s\n' "$BODY" | sed -E 's/.*"accessToken":"([^"]+)".*/\1/')"
+if [ -z "$GUEST_TOKEN" ] || [ "$GUEST_TOKEN" = "$BODY" ]; then
+  echo "[FAIL] setup: guest accessToken missing"
+  echo "Body: $BODY"
+  exit 1
+fi
+echo "[OK] setup: guest token obtained"
+
+request "POST" "/orders" "{\"kraj\":\"Polska\",\"miasto\":\"Warszawa\",\"kod_pocztowy\":\"00-001\",\"ulica\":\"Prosta\",\"nr_domu\":\"10A\"}" "$GUEST_TOKEN"
+assert_status "403" "$STATUS" "POST /orders guest cannot create order"
 
 echo ""
 echo "All API checks passed."
