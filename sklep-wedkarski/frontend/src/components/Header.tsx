@@ -100,6 +100,9 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout, search, setSearch, onSe
               </NavLink>
             </>
           )}
+        <NavLink to="/cart" className="text-lg tracking-tight text-black pl-4">
+          Koszyk
+        </NavLink>
         </div>
       </div>
     </header>
