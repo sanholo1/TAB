@@ -7,15 +7,28 @@ import ProductDetailPage from "./products/ProductDetailPage";
 import LoginPage from "./auth/LoginPage";
 import RegisterPage from "./auth/RegisterPage";
 import ProfilePage from "./auth/ProfilePage";
+import InventoryPage from "./inventory/InventoryPage";
 import type { User } from "./auth/auth.types";
+
+const getStoredUser = (): User | null => {
+  const savedUser = localStorage.getItem("auth_user");
+
+  if (!savedUser) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(savedUser) as User;
+  } catch {
+    localStorage.removeItem("auth_user");
+    return null;
+  }
+};
 
 const AppContent: React.FC = () => {
   const navigate = useNavigate();
   
-  const [user, setUser] = useState<User | null>(() => {
-    const savedUser = localStorage.getItem("auth_user");
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+  const [user, setUser] = useState<User | null>(() => getStoredUser());
   const [searchInput, setSearchInput] = useState("");
 
   const handleLogin = (user: User, token: string) => {
@@ -54,8 +67,12 @@ const AppContent: React.FC = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/products/:id" element={<ProductDetailPage />} />
+          <Route
+            path="/inventory"
+            element={<InventoryPage currentUser={user} />}
+          />
           <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/register" element={<RegisterPage onLogin={handleLogin} />} />
           <Route 
             path="/profile" 
             element={

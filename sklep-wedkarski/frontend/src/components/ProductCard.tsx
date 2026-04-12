@@ -28,13 +28,32 @@ const ProductCard: React.FC<Props> = ({ product }) => {
     }
   };
 
+  const imageUrl = product.zdjecie_url
+    ? product.zdjecie_url.startsWith("http")
+      ? product.zdjecie_url
+      : `http://localhost:3000${product.zdjecie_url}`
+    : null;
+
+  const salePrice = Number(product.cena_sprzedazy);
+  const promoPrice = product.cena_prom === null ? null : Number(product.cena_prom);
+  const promotionalPrice = promoPrice === null || !Number.isFinite(promoPrice) ? null : `${promoPrice.toFixed(2)} zł`;
+
  return (
     <div
       onClick={handleCardClick}
       className="group block cursor-pointer overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 shadow-sm transition hover:border-sky-300 hover:shadow-md"
     >
       <div className="mb-4 flex h-32 items-center justify-center rounded-3xl bg-slate-100 text-sm text-slate-500">
-        [foto]
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={product.nazwa}
+            className="h-full w-full rounded-3xl object-cover"
+            loading="lazy"
+          />
+        ) : (
+          "[foto]"
+        )}
       </div>
       
       <h3 className="mb-2 text-lg font-semibold text-slate-900 group-hover:text-sky-800">
@@ -49,9 +68,16 @@ const ProductCard: React.FC<Props> = ({ product }) => {
         <p className="text-sm text-slate-600 ">
           Kategoria: {product.kategoria?.nazwa ?? `Inne`}
         </p>
-        <p className="text-lg font-semibold text-slate-900">
-          {product.cena_sprzedazy} zł
-        </p>
+        {promotionalPrice ? (
+          <div className="space-y-1">
+            <p className="text-sm text-slate-500 line-through">{Number.isFinite(salePrice) ? `${salePrice.toFixed(2)} zł` : "-"}</p>
+            <p className="text-lg font-semibold text-rose-700">{promotionalPrice}</p>
+          </div>
+        ) : (
+          <p className="text-lg font-semibold text-slate-900">
+            {Number.isFinite(salePrice) ? `${salePrice.toFixed(2)} zł` : "-"}
+          </p>
+        )}
       </div>
 
       <button

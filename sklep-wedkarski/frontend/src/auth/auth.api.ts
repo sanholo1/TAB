@@ -56,8 +56,8 @@ export const loginUser = async (payload: LoginPayload): Promise<{ accessToken: s
     body: JSON.stringify(payload),
   });
 
-export const registerUser = async (payload: RegisterPayload): Promise<{ message: string; redirectTo: string }> =>
-  request<{ message: string; redirectTo: string }>("/auth/register", {
+export const registerUser = async (payload: RegisterPayload): Promise<{ message: string; redirectTo: string; accessToken?: string; user?: User }> =>
+  request<{ message: string; redirectTo: string; accessToken?: string; user?: User }>("/auth/register", {
     method: "POST",
     body: JSON.stringify(payload),
   });

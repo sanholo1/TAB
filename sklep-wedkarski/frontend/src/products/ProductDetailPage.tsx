@@ -21,8 +21,31 @@ export default function ProductDetailPage() {
     .finally(() => setLoading(false));
   }, [id]);
 
+  useEffect(() => {
+    const handleInventoryChange = () => {
+      if (!id) return;
+      setLoading(true);
+      Promise.all([
+        fetchProductById(Number(id)).then(setProduct),
+        fetchProductReviews(Number(id)).then(setReviews)
+      ])
+      .catch(console.error)
+      .finally(() => setLoading(false));
+    };
+
+    window.addEventListener("inventory:changed", handleInventoryChange);
+
+    return () => window.removeEventListener("inventory:changed", handleInventoryChange);
+  }, [id]);
+
   if (loading) return <div className="p-4">Ładowanie danych produktu...</div>;
   if (!product) return <div className="p-4">Nie znaleziono produktu. <Link to="/products" className="underline">Wróć</Link></div>;
+
+  const imageUrl = product.zdjecie_url
+    ? product.zdjecie_url.startsWith("http")
+      ? product.zdjecie_url
+      : `http://localhost:3000${product.zdjecie_url}`
+    : null;
 
   return (
     <div className="p-4 border border-dashed border-gray-400 min-h-screen">
@@ -35,7 +58,11 @@ export default function ProductDetailPage() {
         
         {/* Lewa: Zdjęcie */}
         <div className="w-full md:w-1/2 bg-gray-200 h-64 md:h-auto flex items-center justify-center text-gray-500 border border-gray-300">
-          [Miejsce na główne zdjęcie produktu]
+          {imageUrl ? (
+            <img src={imageUrl} alt={product.nazwa} className="h-full w-full object-cover" />
+          ) : (
+            "[Miejsce na główne zdjęcie produktu]"
+          )}
         </div>
         
         {/* Prawa: Informacje */}
