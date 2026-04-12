@@ -70,5 +70,22 @@ Jest tam surowy szkielet graficzny, trzeba go ładniej zrobić. Dodać wstawiani
 - [ ] **Design**: Zrób to ładnie, usuń ramki, dodaj kolory, obrazki, poprawne marginesy.
 - [ ] **Opinie**: Na stronie `ProductDetailPage.tsx` dodaj prosty formularz na ocenę i komentarz. Podepnij pod niego przygotowaną funkcję `addProductReview()`.
 - [ ] **Koszyk**: Pod przycisk "Dodaj do koszyka" podepnij nową funkcję `addToCart()`. (System będzie wrzucał itemy na sztywno do konta niezalgowanego uzytkownika lub do zalogowanego uzytkwnika).
-- [ ] **Koszyk gościa (ważne)**: Aktualnie gość nie jest w stanie nic dodac do koszyka, konczy się to blędem. Trzeba zaimplenetowac po stronie frontu koszyk gościa, który będzie sie przenosił do koszyka uzytkownika po zalogowaniu. Wszystkie potrzebne funkcje powinny być dostępne. Backend obsługuje jedynie koszyk zalogowanych.
+- [ ] **Koszyk gościa (ważne)**: Aktualnie gość nie jest w stanie nic dodać do koszyka, kończy się to błędem. Trzeba zaimplementować po stronie frontu koszyk gościa, który będzie się przenosił do koszyka użytkownika po zalogowaniu. Wszystkie potrzebne funkcje powinny być dostępne. Konto gościa może już składać zamówienia po zalogowaniu na konto `gosc@sklep.pl`, ale prawdziwy koszyk anonimowy nadal nie jest gotowy.
 - [ ] **Co Chcesz**: Zrób to co chcesz, pisz dc jak coś nie trybi.
+- [ ] 
+
+### API dla frontu
+- `POST /orders/guest` pozwala złożyć zamówienie bez tokena. Payload:
+```json
+{
+  "kraj": "Polska",
+  "miasto": "Warszawa",
+  "kod_pocztowy": "00-001",
+  "ulica": "Prosta",
+  "nr_domu": "10A",
+  "items": [
+    { "id_przedmiotu": 1, "ilosc": 2 }
+  ]
+}
+```
+- Endpoint zapisuje zamówienie na techniczne konto gościa i sam weryfikuje dostępność produktów oraz sumuje duplikaty `id_przedmiotu`.

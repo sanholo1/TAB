@@ -3,7 +3,10 @@ import type { Prisma } from "@prisma/client";
 import type { GetAllProductsParams } from "../types/products.js";
 
 export const getAllProducts = async ({ search, category, min_price, max_price, price, limit }: GetAllProductsParams) => {
-  const where: Prisma.PrzedmiotyWhereInput = { aktywny: true };
+  const where: Prisma.PrzedmiotyWhereInput = {
+    aktywny: true,
+    ilosc: { gt: 0 },
+  };
 
   if (search) {
     where.nazwa = { contains: search };
@@ -23,10 +26,11 @@ export const getAllProducts = async ({ search, category, min_price, max_price, p
     if (price === "high") where.cena_sprzedazy = { gt: 200 };
   }
 
-  return prisma.przedmioty.findMany({ 
-    where, 
+  return prisma.przedmioty.findMany({
+    where,
     include: { kategoria: true },
-    ...(limit ? { take: limit } : {}) 
+    orderBy: [{ id_przedmiotu: "asc" }],
+    ...(limit ? { take: limit } : {})
   });
 };
 
@@ -51,6 +55,7 @@ export const getFeaturedProducts = async (limit: number = 5) => {
   return prisma.przedmioty.findMany({
     where: {
       aktywny: true,
+      ilosc: { gt: 0 },
       cena_prom: { not: null }
     },
     include: { kategoria: true },

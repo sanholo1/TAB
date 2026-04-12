@@ -1,4 +1,5 @@
 import type { User } from "./auth.types";
+import type { Order } from "../orders/orders.types";
 
 const BASE_URL = "http://localhost:3000";
 
@@ -69,3 +70,6 @@ export const updateProfile = async (payload: ProfileUpdatePayload): Promise<{ me
     method: "PATCH",
     body: JSON.stringify(payload),
   });
+
+export const fetchOrders = async (): Promise<Order[]> =>
+  request<Order[]>("/orders");
