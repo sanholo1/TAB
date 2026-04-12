@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { loginUser } from "./auth.api";
 import type { User } from "./auth.types";
+import { mergeCart } from "../products/products.api";
 
 interface LoginPageProps {
   onLogin: (user: User, token: string) => void;
@@ -22,6 +23,20 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     try {
       const result = await loginUser({ email, password });
       onLogin(result.user, result.accessToken);
+
+      //Dodano przerzucenie koszyka gościa do koszyka użytkownika po zalogowaniu
+      const guestCart = localStorage.getItem("Guest_cart");
+      const parsedCart = JSON.parse(guestCart || "[]");
+      if(parsedCart.length > 0) {
+        try {
+          await mergeCart(parsedCart); //Na razie wywala sie przy próbie przeniesienia większej ilości niż jest w magazynie, do dopracowania
+          localStorage.removeItem("Guest_cart");
+        } catch (error) {
+          console.error("Błąd podczas łączenia koszyka:", error);
+          alert("Nie udało się przenieść koszyka. Liczba elementów przekracza dostępne ilości w magazynie. Proszę spróbować ponownie po zmianie ilości.");
+        }
+      }
+
       navigate("/profile");
     } catch (err) {
       if (err instanceof Error) {

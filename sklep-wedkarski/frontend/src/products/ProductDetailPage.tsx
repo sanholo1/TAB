@@ -47,8 +47,7 @@ export default function ProductDetailPage() {
       : `http://localhost:3000${product.zdjecie_url}`
     : null;
 
-  // Obsługa dodawania do koszyka, na razie minimum dla testu czy to wgl dziala tak jak mysle
-  // TODO: walidacja ilosci
+  // Obsługa dodawania do koszyka
   const handleAddToCart = async () => {
     const token = localStorage.getItem("auth_token");
     if (!token)
@@ -58,7 +57,12 @@ export default function ProductDetailPage() {
       const existingItem = guest_cart_array.find((item: any) => item.id_przedmiotu === product.id_przedmiotu);
       if (existingItem)
       {
-        existingItem.ilosc++;
+        if(existingItem.ilosc < product.ilosc) {
+          existingItem.ilosc++;
+        }
+        else {
+          alert("Nie można dodać więcej sztuk tego produktu, przekracza stan magazynowy.");
+        }
       }
       else
       {
