@@ -94,9 +94,30 @@ export const mergeCart = async (
 ) => {
   await prisma.$transaction(async (tx) => {
     for (const item of items) {
-      await upsertCartItem(tx, userId, item.id_przedmiotu, item.ilosc);
-    }
-  });
+      const product = await tx.przedmioty.findUnique({
+        where: { id_przedmiotu: item.id_przedmiotu },
+        select: { aktywny: true, ilosc: true },
+      });
 
-  return getCart(userId);
+      if (!product || !product.aktywny || product.ilosc <= 0) continue;
+
+      const finalQuantity = Math.min(item.ilosc, product.ilosc);
+
+      await tx.koszyk.upsert({
+        where: {
+          id_przedmiotu_id_uzytkownika: {
+            id_przedmiotu: item.id_przedmiotu,
+            id_uzytkownika: userId,
+          },
+        },
+        update: { ilosc: finalQuantity },
+        create: {
+          id_uzytkownika: userId,
+          id_przedmiotu: item.id_przedmiotu,
+          ilosc: finalQuantity,
+        },
+      });
+    }
+  })
+return(userId);
 };

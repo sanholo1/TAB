@@ -32,8 +32,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           await mergeCart(parsedCart); //Na razie wywala sie przy próbie przeniesienia większej ilości niż jest w magazynie, do dopracowania
           localStorage.removeItem("Guest_cart");
         } catch (error) {
-          console.error("Błąd podczas łączenia koszyka:", error);
-          alert("Nie udało się przenieść koszyka. Liczba elementów przekracza dostępne ilości w magazynie. Proszę spróbować ponownie po zmianie ilości.");
+          console.error("Dokładny błąd:", error); // Sprawdź to w konsoli F12!
+          //console.error("Błąd podczas łączenia koszyka:", error);
+          //alert("Nie udało się przenieść koszyka. Liczba elementów przekracza dostępne ilości w magazynie. Proszę spróbować ponownie po zmianie ilości.");
         }
       }
 
