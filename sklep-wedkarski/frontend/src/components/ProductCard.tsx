@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import type { Product } from "../products/products.types";
 import { addToCart } from "../products/products.api";
+import { Tag, ShoppingCart } from "lucide-react";
 
 
 interface Props {
@@ -24,7 +25,7 @@ const ProductCard: React.FC<Props> = ({ product }) => {
       alert("Dodano produkt do koszyka!"); // TODO: powiadomienie
     } catch (error) {
       console.error("Błąd:", error);
-      alert("Dodawnie do koszyka nie powiodło się.");
+      alert("Dodawanie do koszyka nie powiodło się.");
     }
   };
 
@@ -36,14 +37,15 @@ const ProductCard: React.FC<Props> = ({ product }) => {
 
   const salePrice = Number(product.cena_sprzedazy);
   const promoPrice = product.cena_prom === null ? null : Number(product.cena_prom);
-  const promotionalPrice = promoPrice === null || !Number.isFinite(promoPrice) ? null : `${promoPrice.toFixed(2)} zł`;
+  const hasPromotion = promoPrice !== null;
+  const promotionalPrice = !hasPromotion || !Number.isFinite(promoPrice) ? null : `${promoPrice.toFixed(2)} zł`;
 
  return (
     <div
       onClick={handleCardClick}
-      className="group block cursor-pointer overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 shadow-sm transition hover:border-sky-300 hover:shadow-md"
+      className="group flex h-full flex-col cursor-pointer overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 shadow-sm transition hover:border-sky-300 hover:shadow-md"
     >
-      <div className="mb-4 flex h-32 items-center justify-center rounded-3xl bg-slate-100 text-sm text-slate-500">
+      <div className="mb-4 flex h-42 items-center justify-center rounded-3xl bg-slate-100 text-sm text-slate-500">
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -56,37 +58,47 @@ const ProductCard: React.FC<Props> = ({ product }) => {
         )}
       </div>
       
-      <h3 className="mb-2 text-lg font-semibold text-slate-900 group-hover:text-sky-800">
-        {product.nazwa}
-      </h3>
-      
-      <p className="mb-4 text-sm text-slate-600 line-clamp-2">
-        {product.opis ?? "---"}
-      </p>
-      
-      <div className="space-y-2">
-        <p className="text-sm text-slate-600 ">
-          Kategoria: {product.kategoria?.nazwa ?? `Inne`}
+      <div className="flex flex-grow flex-col">
+        <h3 className="mb-2 line-clamp-2 text-lg font-semibold text-slate-900 group-hover:text-sky-800">
+          {product.nazwa}
+        </h3>
+        <p className="mb-4 text-sm text-slate-600 line-clamp-2">
+          {product.opis ?? "---"}
         </p>
-        {promotionalPrice ? (
-          <div className="space-y-1">
-            <p className="text-sm text-slate-500 line-through">{Number.isFinite(salePrice) ? `${salePrice.toFixed(2)} zł` : "-"}</p>
-            <p className="text-lg font-semibold text-rose-700">{promotionalPrice}</p>
-          </div>
-        ) : (
-          <p className="text-lg font-semibold text-slate-900">
-            {Number.isFinite(salePrice) ? `${salePrice.toFixed(2)} zł` : "-"}
-          </p>
-        )}
       </div>
 
-      <button
-        type="button"
-        onClick={handleAddToCart}
-        className="mt-4 inline-flex w-full justify-center rounded-2xl bg-sky-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-800"
-      >
-        Dodaj do koszyka
-      </button>
+      <div className="mt-auto flex flex-col gap-2">
+        <div className="space-y-2">
+          <p className="text-sm text-slate-600 ">
+            Kategoria: {product.kategoria?.nazwa ?? `Inne`}
+          </p>
+          {hasPromotion ? (
+            <div className="flex items-center gap-2 space-y-1">
+              <p className="text-2xl font-bold text-rose-700 group-hover:text-rose-900">
+                {promotionalPrice}
+              </p>
+              <p className="text-lg text-slate-900 line-through">
+                {Number.isFinite(salePrice) ? `${salePrice.toFixed(2)} zł` : "-"}
+              </p>
+              <Tag className="h-5 w-5" />
+            </div>
+          ) : (
+            <p className="text-xl font-semibold text-slate-900">
+              {Number.isFinite(salePrice) ? `${salePrice.toFixed(2)} zł` : "-"}
+            </p>
+          )}
+        </div>
+      
+
+        <button
+            type="button"
+            onClick={handleAddToCart}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-sky-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-800 active:bg-sky-900"
+        >
+          <ShoppingCart className="h-4 w-6" />
+          Dodaj do koszyka
+        </button>
+      </div>
     </div>
   );
 };
