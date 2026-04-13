@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import type { Product } from "../products/products.types";
 import { addToCart } from "../products/products.api";
-import { Tag, ShoppingCart } from "lucide-react";
+import { LayoutGrid, Tag, ShoppingCart } from "lucide-react";
 
 
 interface Props {
@@ -58,10 +58,16 @@ const ProductCard: React.FC<Props> = ({ product }) => {
         )}
       </div>
       
-      <div className="flex flex-grow flex-col">
-        <h3 className="mb-2 line-clamp-2 text-lg font-semibold text-slate-900 group-hover:text-sky-800">
+      <div className="mb-4 flex flex-grow flex-col">
+        <h3 className="mb-2 line-clamp-2 text-xl font-semibold text-slate-900 group-hover:text-sky-800">
           {product.nazwa}
         </h3>
+        <div className="mt-1 mb-4 flex items-center gap-1">
+          <LayoutGrid className="h-4 w-4" />
+          <p className="text-sm  text-slate-600 font-semibold uppercase">
+            {product.kategoria?.nazwa ?? `Inne`}
+          </p>
+        </div>
         <p className="mb-4 text-sm text-slate-600 line-clamp-2">
           {product.opis ?? "---"}
         </p>
@@ -69,9 +75,6 @@ const ProductCard: React.FC<Props> = ({ product }) => {
 
       <div className="mt-auto flex flex-col gap-2">
         <div className="space-y-2">
-          <p className="text-sm text-slate-600 ">
-            Kategoria: {product.kategoria?.nazwa ?? `Inne`}
-          </p>
           {hasPromotion ? (
             <div className="flex items-center gap-2 space-y-1">
               <p className="text-2xl font-bold text-rose-700 group-hover:text-rose-900">
@@ -88,7 +91,6 @@ const ProductCard: React.FC<Props> = ({ product }) => {
             </p>
           )}
         </div>
-      
 
         <button
             type="button"
