@@ -3,7 +3,7 @@ import { HttpError } from "../errors/http-error.js";
 import prisma from "../prisma/prisma.js";
 import type { CreateGuestOrderSchema, CreateOrderSchema } from "../validation/order-schemas.js";
 
-const defaultOrderStatus = "zlozone";
+const defaultOrderStatus = "W_TRAKCIE";
 const guestAccountEmail = "gosc@sklep.pl";
 
 type OrderProductSnapshot = {

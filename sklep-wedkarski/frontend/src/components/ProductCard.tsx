@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import type { Product } from "../products/products.types";
 import { addToCart } from "../products/products.api";
 import { LayoutGrid, Tag, ShoppingCart } from "lucide-react";
+import { toast } from "react-toastify";
 
 
 interface Props {
@@ -20,12 +21,39 @@ const ProductCard: React.FC<Props> = ({ product }) => {
     e.stopPropagation();
     e.preventDefault();
     
-    try {
-      await addToCart(product.id_przedmiotu, 1);
-      alert("Dodano produkt do koszyka!"); // TODO: powiadomienie
-    } catch (error) {
-      console.error("Błąd:", error);
-      alert("Dodawanie do koszyka nie powiodło się.");
+    // Przerzucono logikę dodawania do koszyka z ProductDetailPage, aby obsłużyć zarówno użytkowników zalogowanych, jak i gości
+    const token = localStorage.getItem("auth_token");
+    if (!token)
+    {
+      let guest_cart = localStorage.getItem("Guest_cart") || "[]";
+      let guest_cart_array = JSON.parse(guest_cart);
+      const existingItem = guest_cart_array.find((item: any) => item.id_przedmiotu === product.id_przedmiotu);
+      if (existingItem)
+      {
+        if(existingItem.ilosc < product.ilosc) {
+          existingItem.ilosc++;
+          toast.success(`Dodano produkt: ${product.nazwa} do koszyka.`);
+        }
+        else {
+          toast.error(`Nie udało się dodać produktu: ${product.nazwa} do koszyka. Sprawdź dostępną ilość lub spróbuj ponownie później.`);
+        }
+      }
+      else
+      {
+        guest_cart_array.push({ id_przedmiotu: product.id_przedmiotu, ilosc: 1 });
+        toast.success(`Dodano produkt: ${product.nazwa} do koszyka.`);
+      }
+      guest_cart = JSON.stringify(guest_cart_array);
+      localStorage.setItem("Guest_cart", guest_cart);
+    }
+    else    
+    {
+      try {
+      await addToCart(product.id_przedmiotu, 1); // Na razie dodajemy na sztywno 1 sztukę, rozbuduję o możliwość wyboru ilości
+      toast.success(`Dodano produkt: ${product.nazwa} do koszyka.`);
+      } catch (error) {
+      toast.error(`Nie udało się dodać produktu: ${product.nazwa} do koszyka. Sprawdź dostępną ilość lub spróbuj ponownie później.`);
+      }
     }
   };
 
