@@ -23,8 +23,22 @@ export default function ProfilePage({ currentUser, onUpdateUser, onLogout }: Pro
   const [loading, setLoading] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
+  const [expandedOrderIds, setExpandedOrderIds] = useState<Set<number>>(new Set());
+  const [displayedOrderCount, setDisplayedOrderCount] = useState(10);
   const navigate = useNavigate();
   const isGuestAccount = profile?.email === "gosc@sklep.pl" || profile?.username === "GoscNiezalogowany";
+
+  const toggleOrderExpanded = (orderId: number) => {
+    setExpandedOrderIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(orderId)) {
+        next.delete(orderId);
+      } else {
+        next.add(orderId);
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("auth_token");
@@ -136,57 +150,6 @@ export default function ProfilePage({ currentUser, onUpdateUser, onLogout }: Pro
       </section>
 
       <section className="rounded-[2rem] border border-slate-200 bg-white/90 p-8 shadow-xl shadow-slate-300/20">
-        <div className="mb-6">
-          <p className="uppercase text-sm tracking-[0.3em] text-sky-600">Zamówienia</p>
-          <h2 className="mt-3 text-2xl font-semibold text-slate-900">Historia zamówień</h2>
-          <p className="mt-2 text-slate-600">
-            {isGuestAccount
-              ? "Konto gościa może składać zamówienia i sprawdzać ich historię."
-              : "Tutaj znajdziesz swoje ostatnie zamówienia i ich szczegóły."}
-          </p>
-        </div>
-
-        {ordersLoading ? (
-          <p className="text-slate-600">Ładowanie historii zamówień...</p>
-        ) : orders.length === 0 ? (
-          <div className="rounded-3xl bg-slate-50 p-5 text-slate-600">Brak zamówień do wyświetlenia.</div>
-        ) : (
-          <div className="space-y-4">
-            {orders.map((order) => (
-              <article key={order.id_transakcji} className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-sky-700">Zamówienie #{order.id_transakcji}</p>
-                    <h3 className="mt-2 text-xl font-semibold text-slate-900">{order.kwota_calkowita} zł</h3>
-                    <p className="mt-1 text-sm text-slate-600">
-                      Status: {order.stan} • {new Date(order.data).toLocaleString("pl-PL")}
-                    </p>
-                  </div>
-                  <div className="rounded-2xl bg-white px-4 py-3 text-sm text-slate-600">
-                    {order.adres.ulica} {order.adres.nr_domu}, {order.adres.kod_pocztowy} {order.adres.miasto}, {order.adres.kraj}
-                  </div>
-                </div>
-
-                <div className="mt-4 space-y-2">
-                  {order.przedmioty.map((item) => (
-                    <div
-                      key={`${order.id_transakcji}-${item.id_przedmiotu}`}
-                      className="flex flex-col gap-1 rounded-2xl bg-white px-4 py-3 text-sm text-slate-700 sm:flex-row sm:items-center sm:justify-between"
-                    >
-                      <span className="font-medium text-slate-900">{item.przedmiot.nazwa}</span>
-                      <span>
-                        {item.liczba} szt. • {item.cena_przedmiotu} zł
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="rounded-[2rem] border border-slate-200 bg-white/90 p-8 shadow-xl shadow-slate-300/20">
         <form className="grid gap-5" onSubmit={handleSubmit}>
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="space-y-2 text-sm font-medium text-slate-700">
@@ -267,6 +230,94 @@ export default function ProfilePage({ currentUser, onUpdateUser, onLogout }: Pro
             {loading ? "Zapisywanie..." : "Zapisz zmiany"}
           </button>
         </form>
+      </section>
+
+      <section className="rounded-[2rem] border border-slate-200 bg-white/90 p-8 shadow-xl shadow-slate-300/20">
+        <div className="mb-6">
+          <p className="uppercase text-sm tracking-[0.3em] text-sky-600">Zamówienia</p>
+          <h2 className="mt-3 text-2xl font-semibold text-slate-900">Historia zamówień</h2>
+          <p className="mt-2 text-slate-600">
+            {isGuestAccount
+              ? "Konto gościa może składać zamówienia i sprawdzać ich historię."
+              : "Tutaj znajdziesz swoje ostatnie zamówienia i ich szczegóły."}
+          </p>
+        </div>
+
+        {ordersLoading ? (
+          <p className="text-slate-600">Ładowanie historii zamówień...</p>
+        ) : orders.length === 0 ? (
+          <div className="rounded-3xl bg-slate-50 p-5 text-slate-600">Brak zamówień do wyświetlenia.</div>
+        ) : (
+          <>
+            <div className="space-y-4">
+              {orders.slice(0, displayedOrderCount).map((order) => (
+                <article key={order.id_transakcji} className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex-1">
+                      <p className="text-xs uppercase tracking-[0.3em] text-sky-700">Zamówienie #{order.id_transakcji}</p>
+                      <h3 className="mt-2 text-xl font-semibold text-slate-900">{order.kwota_calkowita} zł</h3>
+                      <p className="mt-1 text-sm text-slate-600">
+                        Status: {order.stan} • {new Date(order.data).toLocaleString("pl-PL")}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => toggleOrderExpanded(order.id_transakcji)}
+                      className="inline-flex items-center gap-2 rounded-2xl border border-sky-300 bg-sky-50 px-4 py-2 text-sm font-medium text-sky-700 transition hover:bg-sky-100 sm:flex-shrink-0"
+                    >
+                      {expandedOrderIds.has(order.id_transakcji) ? "Zwiń" : "Rozwiń"}
+                      <span className="text-lg">{expandedOrderIds.has(order.id_transakcji) ? "▲" : "▼"}</span>
+                    </button>
+                  </div>
+
+                  <div className="mt-4 rounded-2xl bg-white px-4 py-3 text-sm text-slate-600">
+                    {order.adres.ulica} {order.adres.nr_domu}, {order.adres.kod_pocztowy} {order.adres.miasto}, {order.adres.kraj}
+                  </div>
+
+                  {expandedOrderIds.has(order.id_transakcji) && (
+                    <div className="mt-4 space-y-2">
+                      {order.przedmioty.map((item) => (
+                        <div
+                          key={`${order.id_transakcji}-${item.id_przedmiotu}`}
+                          className="flex flex-col gap-1 rounded-2xl bg-white px-4 py-3 text-sm text-slate-700 sm:flex-row sm:items-center sm:justify-between"
+                        >
+                          <span className="font-medium text-slate-900">{item.przedmiot.nazwa}</span>
+                          <span>
+                            {item.liczba} szt. • {item.cena_przedmiotu} zł
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+
+            {orders.length > displayedOrderCount && (
+              <div className="mt-6 flex justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setDisplayedOrderCount(orders.length)}
+                  className="rounded-2xl border border-sky-300 bg-sky-50 px-6 py-3 text-sm font-semibold text-sky-700 transition hover:bg-sky-100"
+                >
+                  Rozwiń więcej
+                </button>
+              </div>
+            )}
+
+            {displayedOrderCount > 10 && (
+              <div className="mt-6 flex justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setDisplayedOrderCount(10)}
+                  className="rounded-2xl border border-slate-300 bg-slate-100 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+                >
+                  Zwiń
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </section>
     </div>
   );

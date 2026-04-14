@@ -47,6 +47,7 @@ export default function InventoryPage({ currentUser }: InventoryPageProps) {
   const [stockDrafts, setStockDrafts] = useState<Record<number, string>>({});
   const [workingIds, setWorkingIds] = useState<Record<number, boolean>>({});
   const [editingProduct, setEditingProduct] = useState<InventoryProduct | null>(null);
+  const [displayedProductCount, setDisplayedProductCount] = useState(10);
 
   const isManager = currentUser?.roleId === 2 || currentUser?.roleId === 3;
   const isAdmin = currentUser?.roleId === 3;
@@ -227,24 +228,24 @@ export default function InventoryPage({ currentUser }: InventoryPageProps) {
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => loadData()}
-            className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-          >
-            Odśwież dane
-          </button>
-        </div><br />
-        {currentUser?.roleId === 3 && (
-        <div>
-          <NavLink
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            {currentUser?.roleId === 3 && (
+              <NavLink
                 to="/reports"
                 className="rounded-2xl bg-sky-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-800"
-          >
-            Raporty
-          </NavLink>
+              >
+                Raporty
+              </NavLink>
+            )}
+            <button
+              type="button"
+              onClick={() => loadData()}
+              className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+            >
+              Odśwież dane
+            </button>
+          </div>
         </div>
-)}
       </section>
 
       {inventoryError && (
@@ -254,6 +255,8 @@ export default function InventoryPage({ currentUser }: InventoryPageProps) {
       {inventoryNotice && (
         <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{inventoryNotice}</p>
       )}
+
+      {isManager && <InventoryCreateForm onCreated={() => loadData().catch(() => undefined)} />}
 
       <InventoryStats total={stockSummary.total} lowStock={stockSummary.lowStock} outOfStock={stockSummary.outOfStock} />
 
@@ -272,7 +275,7 @@ export default function InventoryPage({ currentUser }: InventoryPageProps) {
       />
 
       <InventoryTable
-        products={productsForDisplay}
+        products={productsForDisplay.slice(0, displayedProductCount)}
         loading={loading}
         lowStockThreshold={LOW_STOCK_THRESHOLD}
         busyIds={workingIds}
@@ -288,7 +291,29 @@ export default function InventoryPage({ currentUser }: InventoryPageProps) {
         canDeleteOffers={isAdmin}
       />
 
-      {isManager && <InventoryCreateForm onCreated={() => loadData().catch(() => undefined)} />}
+      {productsForDisplay.length > displayedProductCount && (
+        <div className="mt-6 flex justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => setDisplayedProductCount(productsForDisplay.length)}
+            className="rounded-2xl border border-sky-300 bg-sky-50 px-6 py-3 text-sm font-semibold text-sky-700 transition hover:bg-sky-100"
+          >
+            Rozwiń więcej
+          </button>
+        </div>
+      )}
+
+      {displayedProductCount > 10 && (
+        <div className="mt-6 flex justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => setDisplayedProductCount(10)}
+            className="rounded-2xl border border-slate-300 bg-slate-100 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+          >
+            Zwiń
+          </button>
+        </div>
+      )}
 
       {isManager && (
         <InventoryEditModal
