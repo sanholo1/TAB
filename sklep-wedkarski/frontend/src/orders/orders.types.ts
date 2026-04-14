@@ -11,7 +11,7 @@ export type OrderItem = {
 
 export type OrderAddress = {
   id_adres: number;
-  kraj: string;
+  email: string;
   miasto: string;
   kod_pocztowy: string;
   ulica: string;
