@@ -167,6 +167,113 @@ async function main() {
   })
   console.log('Koszyk: przykładowy wpis')
 
+  const adresy = [
+    { id: 1, kraj: 'Polska', miasto: 'Warszawa', kod_pocztowy: '00-001', ulica: 'Wędkarska', nr_domu: '1A' },
+    { id: 2, kraj: 'Polska', miasto: 'Kraków', kod_pocztowy: '30-001', ulica: 'Rybacka', nr_domu: '12' },
+    { id: 3, kraj: 'Polska', miasto: 'Gdańsk', kod_pocztowy: '80-001', ulica: 'Morska', nr_domu: '7' },
+  ]
+  for (const a of adresy) {
+    await prisma.adres.upsert({
+      where: { id_adres: a.id },
+      update: {},
+      create: { id_adres: a.id, kraj: a.kraj, miasto: a.miasto, kod_pocztowy: a.kod_pocztowy, ulica: a.ulica, nr_domu: a.nr_domu },
+    })
+  }
+  console.log(`Adresy: ${adresy.length} wstawionych`)
+
+  const transakcjeData = Array.from({length: 50}).map((_, i) => {
+    const tId = i + 1;
+    const p1Index = i % 80;
+    const p2Index = i % 2 === 0 ? (i + 15) % 80 : null;
+    
+    const p1 = produkty[p1Index]!;
+    const cena1 = p1.prom !== null ? p1.prom : p1.cena;
+    let sum = cena1 * 1;
+    
+    const items = [
+      { id_transakcji: tId, id_przedmiotu: p1.id, liczba: 1, cena_przedmiotu: cena1 }
+    ];
+    
+    if (p2Index !== null) {
+      const p2 = produkty[p2Index]!;
+      const cena2 = p2.prom !== null ? p2.prom : p2.cena;
+      sum += cena2 * 2;
+      items.push({ id_transakcji: tId, id_przedmiotu: p2.id, liczba: 2, cena_przedmiotu: cena2 });
+    }
+
+    return {
+      t: {
+        id: tId,
+        id_uzytkownika: (i % 3) + 2,
+        kwota_calkowita: Number(sum.toFixed(2)),
+        stan: i % 10 === 0 ? 'ANULOWANE' : (i % 5 === 0 ? 'W_TRAKCIE' : 'ZREALIZOWANE'),
+        id_adres: (i % 3) + 1,
+        data: new Date(`2026-04-${String((i % 25) + 1).padStart(2, '0')}T10:00:00Z`)
+      },
+      items
+    };
+  });
+
+  const transakcje = transakcjeData.map(d => d.t);
+  const pozycjeTransakcji = transakcjeData.flatMap(d => d.items);
+
+  for (const t of transakcje) {
+    await prisma.transakcja.upsert({
+      where: { id_transakcji: t.id },
+      update: {},
+      create: { id_transakcji: t.id, id_uzytkownika: t.id_uzytkownika, kwota_calkowita: t.kwota_calkowita, stan: t.stan, id_adres: t.id_adres, data: t.data },
+    })
+  }
+  console.log(`Transakcje: ${transakcje.length} wstawionych`)
+
+  for (const pt of pozycjeTransakcji) {
+    await prisma.przedmioty_transakcji.upsert({
+      where: { id_transakcji_id_przedmiotu: { id_transakcji: pt.id_transakcji, id_przedmiotu: pt.id_przedmiotu } },
+      update: {},
+      create: { id_transakcji: pt.id_transakcji, id_przedmiotu: pt.id_przedmiotu, liczba: pt.liczba, cena_przedmiotu: pt.cena_przedmiotu },
+    })
+  }
+  console.log(`Pozycje transakcji: ${pozycjeTransakcji.length} wstawionych`)
+
+  const opinieCustom = [
+    { id: 1, id_uzytkownika: 2, id_przedmiotu: 1, ocena: 5, komentarz: 'Świetna wędka, polecam każdemu karpiarzowi!' },
+    { id: 2, id_uzytkownika: 3, id_przedmiotu: 1, ocena: 4, komentarz: 'Całkiem niezła.' },
+    { id: 3, id_uzytkownika: 4, id_przedmiotu: 1, ocena: 5, komentarz: 'Najlepsza w swojej klasie.' },
+    { id: 4, id_uzytkownika: 2, id_przedmiotu: 2, ocena: 4, komentarz: 'Dobra wędka, ale przelotki mogłyby być lepsze.' },
+    { id: 5, id_uzytkownika: 3, id_przedmiotu: 2, ocena: 3, komentarz: 'Taka sobie, szału nie robi.' },
+    { id: 6, id_uzytkownika: 4, id_przedmiotu: 63, ocena: 5, komentarz: 'Namiot pierwsza klasa. Nie przemaka nawet podczas ulewy.' },
+    { id: 7, id_uzytkownika: 2, id_przedmiotu: 63, ocena: 4, komentarz: 'Rozkłada się trochę wolno, ale poza tym świetny.' },
+    { id: 8, id_uzytkownika: 3, id_przedmiotu: 63, ocena: 5, komentarz: 'Rewelacja!' },
+    { id: 9, id_uzytkownika: 2, id_przedmiotu: 11, ocena: 5, komentarz: 'Bardzo ostre haczyki. Idealne na karpie.' },
+    { id: 10, id_uzytkownika: 4, id_przedmiotu: 21, ocena: 4, komentarz: 'Wobler działa dobrze, łowi szczupaki.' },
+    { id: 11, id_uzytkownika: 3, id_przedmiotu: 21, ocena: 5, komentarz: 'Moja ulubiona przynęta w tym sezonie.' },
+    { id: 12, id_uzytkownika: 2, id_przedmiotu: 21, ocena: 3, komentarz: 'Niestety lakier bardzo szybko odpada.' },
+    { id: 13, id_uzytkownika: 4, id_przedmiotu: 35, ocena: 5, komentarz: 'Kołowrotek świetny, bardzo płynnie chodzi.' },
+    { id: 14, id_uzytkownika: 2, id_przedmiotu: 35, ocena: 5, komentarz: 'Brak zastrzeżeń, leciuteńki.' },
+    { id: 15, id_uzytkownika: 3, id_przedmiotu: 41, ocena: 4, komentarz: 'Żyłka wytrzymała, chociaż trochę się plącze.' },
+    { id: 16, id_uzytkownika: 4, id_przedmiotu: 41, ocena: 3, komentarz: 'Są lepsze w tej cenie.' },
+    { id: 17, id_uzytkownika: 2, id_przedmiotu: 41, ocena: 5, komentarz: 'Na moje potrzeby wystarczy w stu procentach.' },
+    { id: 18, id_uzytkownika: 3, id_przedmiotu: 52, ocena: 5, komentarz: 'Bardzo czuły spławiczek.' },
+    { id: 19, id_uzytkownika: 4, id_przedmiotu: 70, ocena: 2, komentarz: 'Latarka przestała działać po jednym wypadzie. Czekam na wymianę.' },
+    { id: 20, id_uzytkownika: 2, id_przedmiotu: 70, ocena: 5, komentarz: 'Moja sztuka działa bez zarzutu całą noc!' }
+  ]
+  const opinieGenerated = Array.from({length: 30}).map((_, i) => ({
+    id: 21 + i,
+    id_uzytkownika: (i % 3) + 2,
+    id_przedmiotu: ((i * 3) % 80) + 1,
+    ocena: (i % 3) + 3,
+    komentarz: `Ocena: ${ (i % 3) + 3 }/5. Ogólnie produkt spełnia oczekiwania.`
+  }))
+  const opinie = [...opinieCustom, ...opinieGenerated]
+  for (const o of opinie) {
+    await prisma.opinia.upsert({
+      where: { id_opinia: o.id },
+      update: {},
+      create: { id_opinia: o.id, id_uzytkownika: o.id_uzytkownika, id_przedmiotu: o.id_przedmiotu, ocena: o.ocena, komentarz: o.komentarz },
+    })
+  }
+  console.log(`Opinie: ${opinie.length} wstawionych`)
+
   console.log('\nSeed zakończony pomyślnie')
 }
 
