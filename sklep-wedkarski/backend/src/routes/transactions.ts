@@ -5,7 +5,9 @@ const router = Router();
 
 router.get("/", async (req, res) => {
   const { dateFrom, dateTo, category } = req.query;
-  const conditions: any[] = [];
+  
+  // Budujemy warunki SPECZYFICZNIE dla raportu zysków
+  const salesConditions: any[] = [{ transakcja: { stan: "Z" } }]; // Dodajemy filtr stanu Z
 
   if (dateFrom || dateTo) {
     const dataFilter: any = {};
@@ -15,16 +17,17 @@ router.get("/", async (req, res) => {
       dTo.setHours(23, 59, 59, 999);
       dataFilter.lte = dTo;
     }
-    conditions.push({ transakcja: { data: dataFilter } });
+    salesConditions.push({ transakcja: { data: dataFilter } });
   }
+
   const categoryId = category && Number(category) > 0 ? Number(category) : undefined;
   if (categoryId) {
-    conditions.push({ przedmiot: { id_kategorii: categoryId } });
+    salesConditions.push({ przedmiot: { id_kategorii: categoryId } });
   }
 
   try {
     const salesData = await prisma.przedmioty_transakcji.findMany({
-      where: conditions.length > 0 ? { AND: conditions } : {},
+      where: { AND: salesConditions }, // Używamy salesConditions zamiast ogólnego conditions
       include: {
         transakcja: true,
         przedmiot: { include: { kategoria: true } },

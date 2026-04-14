@@ -61,6 +61,9 @@ const ReportsGenerating = () => {
     return rows;
   }, [rawData.sales, salesSort]);
 
+  // Obliczamy sumę zysków ze wszystkich wierszy widocznych w raporcie zysków
+const totalProfit = salesReport.reduce((acc, row) => acc + row.profit, 0);
+
   const reviewsReport = useMemo(() => {
     const data = (rawData.reviews || []).map((p: any) => {
       const count = p.opinie?.length || 0;
@@ -106,21 +109,37 @@ const ReportsGenerating = () => {
       </div>
 
       <h2>Raport zysków</h2>
-      <table border={1} style={{ width: "100%", borderCollapse: "collapse", marginBottom: "40px" }}>
-        <thead style={{ backgroundColor: "#eee" }}>
-          <tr>
-            <th>Data</th>
-            <th>Kategoria</th>
-            <th>Liczba</th>
-            <th onClick={() => setSalesSort(salesSort === "desc" ? "asc" : "desc")} style={{ cursor: "pointer" }}>Zysk {salesSort === "asc" ? "▲" : "▼"}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {salesReport.map((r: any, i) => (
-            <tr key={i}><td>{r.date}</td><td>{r.category}</td><td>{r.count}</td><td>{r.profit.toFixed(2)} zł</td></tr>
-          ))}
-        </tbody>
-      </table>
+<table border={1} style={{ width: "100%", borderCollapse: "collapse", marginBottom: "40px" }}>
+  <thead style={{ backgroundColor: "#eee" }}>
+    <tr>
+      <th>Data</th>
+      <th>Kategoria</th>
+      <th>Liczba</th>
+      <th onClick={() => setSalesSort(salesSort === "desc" ? "asc" : "desc")} style={{ cursor: "pointer" }}>
+        Zysk {salesSort === "asc" ? "▲" : "▼"}
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    {salesReport.map((r: any, i) => (
+      <tr key={i}>
+        <td>{r.date}</td>
+        <td>{r.category}</td>
+        <td>{r.count}</td>
+        <td>{r.profit.toFixed(2)} zł</td>
+      </tr>
+    ))}
+  </tbody>
+  {/* DODANA STOPKA Z SUMĄ */}
+  {salesReport.length > 0 && (
+    <tfoot style={{ backgroundColor: "#f9f9f9", fontWeight: "bold" }}>
+      <tr>
+        <td colSpan={3} style={{ textAlign: "right", padding: "10px" }}>Suma całkowita:</td>
+        <td>{totalProfit.toFixed(2)} zł</td>
+      </tr>
+    </tfoot>
+  )}
+</table>
 
       <h2>Raport opinii</h2>
       <table border={1} style={{ width: "100%", borderCollapse: "collapse" }}>
