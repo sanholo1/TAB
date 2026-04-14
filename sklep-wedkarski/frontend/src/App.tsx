@@ -11,6 +11,8 @@ import InventoryPage from "./inventory/InventoryPage";
 import type { User } from "./auth/auth.types";
 import ReportsGenerating from "./inventory/ReportsGeneratingPage";
 import CartPage from "./cart/CartPage";
+import { ToastContainer } from "react-toastify"; //Dodany import dla ToastContainer do powiadomień
+import 'react-toastify/dist/ReactToastify.css';
 
 const getStoredUser = (): User | null => {
   const savedUser = localStorage.getItem("auth_user");
@@ -98,6 +100,7 @@ const AppContent: React.FC = () => {
           <Route path="/cart" element={<CartPage />} />
         </Routes>
       </main>
+      <ToastContainer style={{ marginTop: "90px" }} position="top-right" autoClose={3000} theme="colored" limit={3} />
     </div>
   );
 };

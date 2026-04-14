@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { addToCart, fetchProductById, fetchProductReviews } from "./products.api";
 import type { Product, Review } from "./products.types";
+import { toast } from "react-toastify";
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -59,21 +60,28 @@ export default function ProductDetailPage() {
       {
         if(existingItem.ilosc < product.ilosc) {
           existingItem.ilosc++;
+          toast.success(`Dodano produkt: ${product.nazwa} do koszyka.`);
         }
         else {
-          alert("Nie można dodać więcej sztuk tego produktu, przekracza stan magazynowy.");
+          toast.error(`Nie udało się dodać produktu: ${product.nazwa} do koszyka. Sprawdź dostępną ilość lub spróbuj ponownie później.`);
         }
       }
       else
       {
         guest_cart_array.push({ id_przedmiotu: product.id_przedmiotu, ilosc: 1 });
+        toast.success(`Dodano produkt: ${product.nazwa} do koszyka.`);
       }
       guest_cart = JSON.stringify(guest_cart_array);
       localStorage.setItem("Guest_cart", guest_cart);
     }
     else    
     {
+      try {
       await addToCart(product.id_przedmiotu, 1); // Na razie dodajemy na sztywno 1 sztukę, rozbuduję o możliwość wyboru ilości
+      toast.success(`Dodano produkt: ${product.nazwa} do koszyka.`);
+      } catch (error) {
+      toast.error(`Nie udało się dodać produktu: ${product.nazwa} do koszyka. Sprawdź dostępną ilość lub spróbuj ponownie później.`);
+      }
     }
   }
 

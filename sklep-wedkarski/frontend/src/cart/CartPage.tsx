@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { addToCart, fetchProductById, getCart, removeFromCart } from "../products/products.api";
+import { toast } from "react-toastify";
 
 export default function CartPage() {
 const [loading, setLoading] = useState(true);
@@ -103,15 +104,15 @@ const handleCheckout = async () => {
     const invalidItems = checkoutItems.filter(item => item.ilosc > item.stan_magazynowy);
     if (invalidItems.length > 0) {
         setCartItems(checkoutItems);
-        alert("Niektóre produkty przekraczają stan magazynowy. Proszę dostosować ilości przed przejściem do płatności.");
+        toast.error("Niektóre produkty przekraczają stan magazynowy. Proszę dostosować ilości przed przejściem do płatności.");
         return;
     }
     else {
-        alert("Przechodzenie do płatności.");
+        toast.success("Przechodzenie do płatności.");
     }
 } catch (error) {
     console.error("Checkout failed:", error);
-    alert("Wystąpił błąd podczas przechodzenia do płatności. Proszę spróbować ponownie.");
+    toast.error("Wystąpił błąd podczas przechodzenia do płatności. Proszę spróbować ponownie.");
     }
 };
 
