@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 import type { User } from "../auth/auth.types";
 import { fetchCategories } from "../products/products.api";
 import type { Category } from "../products/products.types";
+import { NavLink } from "react-router-dom";
 import {
   deleteInventoryProduct,
   fetchInventoryProducts,
@@ -222,7 +223,7 @@ export default function InventoryPage({ currentUser }: InventoryPageProps) {
             <h1 className="mt-2 text-3xl font-semibold text-slate-900">Zarządzanie stanem i ofertą</h1>
             <p className="mt-2 text-slate-600">
               Sprzedawca i administrator mogą tworzyć, publikować i edytować oferty. Administrator dodatkowo może ręcznie
-              regulować stan magazynowy i usuwać oferty ze strony.
+              regulować stan magazynowy i usuwać oferty ze strony, a także generować raporty.
             </p>
           </div>
 
@@ -233,7 +234,17 @@ export default function InventoryPage({ currentUser }: InventoryPageProps) {
           >
             Odśwież dane
           </button>
+        </div><br />
+        {currentUser?.roleId === 3 && (
+        <div>
+          <NavLink
+                to="/reports"
+                className="rounded-2xl bg-sky-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-800"
+          >
+            Raporty
+          </NavLink>
         </div>
+)}
       </section>
 
       {inventoryError && (

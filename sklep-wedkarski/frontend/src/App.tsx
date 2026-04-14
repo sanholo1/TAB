@@ -9,6 +9,7 @@ import RegisterPage from "./auth/RegisterPage";
 import ProfilePage from "./auth/ProfilePage";
 import InventoryPage from "./inventory/InventoryPage";
 import type { User } from "./auth/auth.types";
+import ReportsGenerating from "./inventory/ReportsGeneratingPage";
 
 const getStoredUser = (): User | null => {
   const savedUser = localStorage.getItem("auth_user");
@@ -83,6 +84,7 @@ const AppContent: React.FC = () => {
               />
             } 
           />
+          <Route path="/reports" element={<ReportsGenerating />} />
         </Routes>
       </main>
     </div>
