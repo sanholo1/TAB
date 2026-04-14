@@ -16,10 +16,26 @@ export const getAllProducts = async ({ search, category, min_price, max_price, p
     where.id_kategorii = category;
   }
 
-  if (min_price !== undefined || max_price !== undefined) {
-    where.cena_sprzedazy = {};
-    if (min_price !== undefined) where.cena_sprzedazy.gte = min_price;
-    if (max_price !== undefined) where.cena_sprzedazy.lte = max_price;
+  if (min_price !== undefined || max_price !== undefined) { // <-- nowa wersja filtrowania po cenie
+    where.AND = [];
+    if (min_price !== undefined){
+      where.AND.push(
+        {OR: [ 
+          {cena_prom: {gte: min_price}}, 
+          {AND: [ {cena_prom: null},
+                  {cena_sprzedazy: {gte: min_price}} ]}
+        ]}
+      )
+    }
+    if (max_price !== undefined){
+      where.AND.push(
+        {OR: [ 
+          {cena_prom: {lte: max_price}}, 
+          {AND: [ {cena_prom: null},
+                  {cena_sprzedazy: {lte: max_price}} ]}
+        ]}
+      )
+    }
   } else if (price) {
     if (price === "low") where.cena_sprzedazy = { lt: 50 };
     if (price === "mid") where.cena_sprzedazy = { gte: 50, lte: 200 };

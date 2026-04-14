@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { fetchProducts, fetchCategories } from "./products.api";
 import type { Product, Category } from "./products.types";
@@ -95,7 +95,11 @@ export default function ProductsPage() {
             setSearchParams(newParams);
           }}
           onClearFilters={() => {
-            setSearchParams(new URLSearchParams()); // Czyści cały URL
+            const newParams = new URLSearchParams(searchParams);
+            newParams.delete("category");
+            newParams.delete("min_price");
+            newParams.delete("max_price");
+            setSearchParams(newParams);
           }}
         />
 

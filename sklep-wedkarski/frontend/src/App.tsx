@@ -1,5 +1,5 @@
 ﻿import React, { useState } from "react";
-import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useNavigate, useLocation } from "react-router-dom";
 import Header from "./components/Header";
 import HomePage from "./homepage/HomePage";
 import ProductsPage from "./products/ProductsPage";
@@ -28,9 +28,13 @@ const getStoredUser = (): User | null => {
 
 const AppContent: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   
   const [user, setUser] = useState<User | null>(() => getStoredUser());
-  const [searchInput, setSearchInput] = useState("");
+  const [searchInput, setSearchInput] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("search") || "";
+  });
 
   const handleLogin = (user: User, token: string) => {
     localStorage.setItem("auth_token", token);
@@ -47,8 +51,13 @@ const AppContent: React.FC = () => {
 
   const handleSearch = () => {
     const trimmed = searchInput.trim();
-    if (!trimmed) return;
-    navigate(`/products?search=${encodeURIComponent(trimmed)}`);
+    const currentParams = new URLSearchParams(location.search);
+    if (!trimmed){
+      currentParams.delete("search");
+    } else {
+      currentParams.set("search", trimmed)
+    }
+    navigate(`/products?${currentParams.toString()}`);
   };
 
   return (
