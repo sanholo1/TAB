@@ -168,15 +168,15 @@ async function main() {
   console.log('Koszyk: przykładowy wpis')
 
   const adresy = [
-    { id: 1, kraj: 'Polska', miasto: 'Warszawa', kod_pocztowy: '00-001', ulica: 'Wędkarska', nr_domu: '1A' },
-    { id: 2, kraj: 'Polska', miasto: 'Kraków', kod_pocztowy: '30-001', ulica: 'Rybacka', nr_domu: '12' },
-    { id: 3, kraj: 'Polska', miasto: 'Gdańsk', kod_pocztowy: '80-001', ulica: 'Morska', nr_domu: '7' },
+    { id: 1, email: 'jan@test.pl', miasto: 'Warszawa', kod_pocztowy: '00-001', ulica: 'Wędkarska', nr_domu: '1A' },
+    { id: 2, email: 'anna@test.pl', miasto: 'Kraków', kod_pocztowy: '30-001', ulica: 'Rybacka', nr_domu: '12' },
+    { id: 3, email: 'piotr@test.pl', miasto: 'Gdańsk', kod_pocztowy: '80-001', ulica: 'Morska', nr_domu: '7' },
   ]
   for (const a of adresy) {
     await prisma.adres.upsert({
       where: { id_adres: a.id },
       update: {},
-      create: { id_adres: a.id, kraj: a.kraj, miasto: a.miasto, kod_pocztowy: a.kod_pocztowy, ulica: a.ulica, nr_domu: a.nr_domu },
+      create: { id_adres: a.id, email: a.email, miasto: a.miasto, kod_pocztowy: a.kod_pocztowy, ulica: a.ulica, nr_domu: a.nr_domu },
     })
   }
   console.log(`Adresy: ${adresy.length} wstawionych`)

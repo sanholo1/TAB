@@ -167,7 +167,7 @@ if [ -n "$FIRST_PRODUCT_ID" ] && [ "$FIRST_PRODUCT_ID" != "$BODY" ]; then
   request "POST" "/orders" "{}" "$TOKEN"
   assert_status "400" "$STATUS" "POST /orders invalid payload"
 
-  request "POST" "/orders" "{\"kraj\":\"Polska\",\"miasto\":\"Warszawa\",\"kod_pocztowy\":\"00-001\",\"ulica\":\"Prosta\",\"nr_domu\":\"10A\"}" "$TOKEN"
+  request "POST" "/orders" "{\"email\":\"test@test.pl\",\"miasto\":\"Warszawa\",\"kod_pocztowy\":\"00-001\",\"ulica\":\"Prosta\",\"nr_domu\":\"10A\"}" "$TOKEN"
   assert_status "201" "$STATUS" "POST /orders create order"
   printf '%s\n' "$BODY" | grep -q '"id_transakcji":' || { echo "[FAIL] /orders should return created order"; exit 1; }
   echo "[OK] /orders returns created order"
@@ -213,7 +213,7 @@ if [ "$STATUS" != "201" ] && [ "$STATUS" != "200" ]; then
 fi
 echo "[OK] setup: POST /cart add product for guest order -> $STATUS"
 
-request "POST" "/orders" "{\"kraj\":\"Polska\",\"miasto\":\"Warszawa\",\"kod_pocztowy\":\"00-001\",\"ulica\":\"Prosta\",\"nr_domu\":\"10A\"}" "$GUEST_TOKEN"
+request "POST" "/orders" "{\"email\":\"test@test.pl\",\"miasto\":\"Warszawa\",\"kod_pocztowy\":\"00-001\",\"ulica\":\"Prosta\",\"nr_domu\":\"10A\"}" "$GUEST_TOKEN"
 assert_status "201" "$STATUS" "POST /orders guest create order"
 printf '%s\n' "$BODY" | grep -q '"id_transakcji":' || { echo "[FAIL] guest /orders should return created order"; exit 1; }
 echo "[OK] guest /orders returns created order"
@@ -230,7 +230,7 @@ assert_status "200" "$STATUS" "GET /orders guest after create"
 printf '%s\n' "$BODY" | grep -q "\"id_transakcji\":$GUEST_ORDER_ID" || { echo "[FAIL] guest /orders history should include created order"; exit 1; }
 echo "[OK] guest /orders history contains created order"
 
-request "POST" "/orders/guest" "{\"kraj\":\"Polska\",\"miasto\":\"Warszawa\",\"kod_pocztowy\":\"00-001\",\"ulica\":\"Prosta\",\"nr_domu\":\"10A\",\"items\":[{\"id_przedmiotu\":$FIRST_PRODUCT_ID,\"ilosc\":1}]}"
+request "POST" "/orders/guest" "{\"email\":\"test@test.pl\",\"miasto\":\"Warszawa\",\"kod_pocztowy\":\"00-001\",\"ulica\":\"Prosta\",\"nr_domu\":\"10A\",\"items\":[{\"id_przedmiotu\":$FIRST_PRODUCT_ID,\"ilosc\":1}]}"
 assert_status "201" "$STATUS" "POST /orders/guest anonymous create order"
 printf '%s\n' "$BODY" | grep -q '"id_transakcji":' || { echo "[FAIL] anonymous guest /orders/guest should return created order"; exit 1; }
 echo "[OK] anonymous guest /orders/guest returns created order"

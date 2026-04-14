@@ -140,7 +140,7 @@ const createOrder = async (
 ) => {
   const address = await tx.adres.create({
     data: {
-      kraj: payload.kraj,
+      email: payload.email,
       miasto: payload.miasto,
       kod_pocztowy: payload.kod_pocztowy,
       ulica: payload.ulica,
@@ -256,4 +256,44 @@ export const createGuestOrder = async (payload: CreateGuestOrderSchema) => {
 
     return createOrder(tx, guestUserId, payload, items);
   });
+};
+
+export const getOrderById = async (orderId: number) => {
+  const order = await prisma.transakcja.findUnique({
+    where: { id_transakcji: orderId },
+    include: orderInclude,
+  });
+
+  if (!order) {
+    throw new HttpError(404, "Order not found");
+  }
+
+  return order;
+};
+
+export const updateOrderStatus = async (orderId: number, status: string) => {
+  const exists = await prisma.transakcja.findUnique({
+    where: { id_transakcji: orderId },
+    select: { id_transakcji: true },
+  });
+
+  if (!exists) {
+    throw new HttpError(404, "Order not found");
+  }
+
+  return prisma.transakcja.update({
+    where: { id_transakcji: orderId },
+    data: { stan: status },
+    include: orderInclude,
+  });
+};
+
+export const getLastUserAddress = async (userId: number) => {
+  const lastOrder = await prisma.transakcja.findFirst({
+    where: { id_uzytkownika: userId },
+    orderBy: { data: "desc" },
+    include: { adres: true },
+  });
+
+  return lastOrder?.adres ?? null;
 };
