@@ -260,18 +260,29 @@ export default function ProfilePage({ currentUser, onUpdateUser, onLogout }: Pro
                         Status: {order.stan} • {new Date(order.data).toLocaleString("pl-PL")}
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => toggleOrderExpanded(order.id_transakcji)}
-                      className="inline-flex items-center gap-2 rounded-2xl border border-sky-300 bg-sky-50 px-4 py-2 text-sm font-medium text-sky-700 transition hover:bg-sky-100 sm:flex-shrink-0"
-                    >
-                      {expandedOrderIds.has(order.id_transakcji) ? "Zwiń" : "Rozwiń"}
-                      <span className="text-lg">{expandedOrderIds.has(order.id_transakcji) ? "▲" : "▼"}</span>
-                    </button>
+                    <div className="flex items-center gap-2 sm:flex-shrink-0">
+                      {order.stan === "W_TRAKCIE" && (
+                        <button
+                          type="button"
+                          onClick={() => navigate("/profile")}
+                          className="inline-flex items-center rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100"
+                        >
+                          Opłać
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => toggleOrderExpanded(order.id_transakcji)}
+                        className="inline-flex items-center gap-2 rounded-2xl border border-sky-300 bg-sky-50 px-4 py-2 text-sm font-medium text-sky-700 transition hover:bg-sky-100"
+                      >
+                        {expandedOrderIds.has(order.id_transakcji) ? "Zwiń" : "Rozwiń"}
+                        <span className="text-lg">{expandedOrderIds.has(order.id_transakcji) ? "▲" : "▼"}</span>
+                      </button>
+                    </div>
                   </div>
 
                   <div className="mt-4 rounded-2xl bg-white px-4 py-3 text-sm text-slate-600">
-                    {order.adres.ulica} {order.adres.nr_domu}, {order.adres.kod_pocztowy} {order.adres.miasto}, {order.adres.kraj}
+                    {order.adres.ulica} {order.adres.nr_domu}, {order.adres.kod_pocztowy} {order.adres.miasto}
                   </div>
 
                   {expandedOrderIds.has(order.id_transakcji) && (
