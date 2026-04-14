@@ -22,6 +22,11 @@ router.post("/guest", async (req, res) => {
   res.status(201).json(order);
 });
 
+router.get("/last-address", async (req, res) => {
+  const userId = req.authUser!.userId;
+  const address = await getLastUserAddress(userId);
+  res.json({ address });
+});
 
 router.get("/:id", async (req, res) => {
   const id = Number(req.params.id);
@@ -58,11 +63,5 @@ router.post("/", async (req, res) => {
   res.status(201).json(order);
 });
 
-
-router.get("/last-address", async (req, res) => {
-  const userId = req.authUser!.userId;
-  const address = await getLastUserAddress(userId);
-  res.json({ address });
-});
 
 export default router;

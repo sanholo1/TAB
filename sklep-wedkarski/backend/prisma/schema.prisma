@@ -9,95 +9,95 @@ datasource db {
 
 model Adres {
   id_adres     Int          @id @default(autoincrement())
-  email        String       @db.VarChar(191)
-  miasto       String       @db.VarChar(191)
-  kod_pocztowy String       @db.VarChar(191)
-  ulica        String       @db.VarChar(191)
-  nr_domu      String       @db.VarChar(191)
+  miasto       String
+  kod_pocztowy String
+  ulica        String
+  nr_domu      String
+  email        String
   transakcje   Transakcja[]
 }
 
 model Rola {
-  id_roli      Int           @id @default(autoincrement())
-  nazwa        String        @unique @db.VarChar(191)
-  uzytkownicy  Uzytkownik[]
+  id_roli     Int          @id @default(autoincrement())
+  nazwa       String       @unique
+  uzytkownicy Uzytkownik[]
 }
 
 model Uzytkownik {
-  id_uzytkownika Int                  @id @default(autoincrement())
-  nazwa          String               @unique @db.VarChar(191)
-  imie           String               @db.VarChar(191)
-  nazwisko       String               @db.VarChar(191)
-  email          String               @unique @db.VarChar(191)
-  haslo          String               @db.VarChar(191)
+  id_uzytkownika Int          @id @default(autoincrement())
+  nazwa          String       @unique
+  imie           String
+  nazwisko       String
+  email          String       @unique
+  haslo          String
   id_roli        Int
-  rola           Rola                 @relation(fields: [id_roli], references: [id_roli])
   koszyk         Koszyk[]
   opinie         Opinia[]
   transakcje     Transakcja[]
+  rola           Rola         @relation(fields: [id_roli], references: [id_roli])
 
   @@index([id_roli])
 }
 
 model Kategoria {
   id_kategorii Int          @id @default(autoincrement())
-  nazwa        String       @db.VarChar(191)
+  nazwa        String
   przedmioty   Przedmioty[]
 }
 
 model Przedmioty {
-  id_przedmiotu         Int                    @id @default(autoincrement())
-  nazwa                 String                 @db.VarChar(191)
-  opis                  String?                @db.Text
-  zdjecie_url           String?                @db.VarChar(500)
-  cena_sprzedazy        Decimal                @db.Decimal(10, 2)
-  id_kategorii          Int
-  cena_prom             Decimal?               @db.Decimal(10, 2)
-  aktywny               Boolean                @default(true)
-  ilosc                 Int
-  cena_zakupu           Decimal                @db.Decimal(10, 2)
-  kategoria             Kategoria              @relation(fields: [id_kategorii], references: [id_kategorii])
-  koszyk                Koszyk[]
-  opinie                Opinia[]
-  pozycje_transakcji    Przedmioty_transakcji[]
+  id_przedmiotu      Int                     @id @default(autoincrement())
+  nazwa              String
+  opis               String?                 @db.Text
+  cena_sprzedazy     Decimal                 @db.Decimal(10, 2)
+  id_kategorii       Int
+  cena_prom          Decimal?                @db.Decimal(10, 2)
+  ilosc              Int
+  cena_zakupu        Decimal                 @db.Decimal(10, 2)
+  aktywny            Boolean                 @default(true)
+  zdjecie_url        String?                 @db.VarChar(500)
+  koszyk             Koszyk[]
+  opinie             Opinia[]
+  kategoria          Kategoria               @relation(fields: [id_kategorii], references: [id_kategorii])
+  pozycje_transakcji Przedmioty_transakcji[]
 
   @@index([id_kategorii])
 }
 
 model Koszyk {
-  id_przedmiotu   Int
-  id_uzytkownika  Int
-  ilosc           Int
-  przedmiot       Przedmioty   @relation(fields: [id_przedmiotu], references: [id_przedmiotu])
-  uzytkownik      Uzytkownik   @relation(fields: [id_uzytkownika], references: [id_uzytkownika])
+  id_przedmiotu  Int
+  id_uzytkownika Int
+  ilosc          Int
+  przedmiot      Przedmioty @relation(fields: [id_przedmiotu], references: [id_przedmiotu])
+  uzytkownik     Uzytkownik @relation(fields: [id_uzytkownika], references: [id_uzytkownika])
 
   @@id([id_przedmiotu, id_uzytkownika])
   @@index([id_uzytkownika])
 }
 
 model Opinia {
-  id_opinia       Int         @id @default(autoincrement())
-  id_uzytkownika  Int
-  id_przedmiotu   Int
-  ocena           Int
-  komentarz       String?     @db.Text
-  uzytkownik      Uzytkownik  @relation(fields: [id_uzytkownika], references: [id_uzytkownika])
-  produkt         Przedmioty  @relation(fields: [id_przedmiotu], references: [id_przedmiotu])
+  id_opinia      Int        @id @default(autoincrement())
+  id_uzytkownika Int
+  id_przedmiotu  Int
+  ocena          Int
+  komentarz      String?    @db.Text
+  produkt        Przedmioty @relation(fields: [id_przedmiotu], references: [id_przedmiotu])
+  uzytkownik     Uzytkownik @relation(fields: [id_uzytkownika], references: [id_uzytkownika])
 
   @@index([id_uzytkownika])
   @@index([id_przedmiotu])
 }
 
 model Transakcja {
-  id_transakcji      Int                     @id @default(autoincrement())
-  id_uzytkownika     Int
-  kwota_calkowita    Decimal                 @db.Decimal(10, 2)
-  stan               String                  @db.VarChar(191)
-  data               DateTime                @default(now())
-  id_adres           Int
-  uzytkownik         Uzytkownik              @relation(fields: [id_uzytkownika], references: [id_uzytkownika])
-  adres              Adres                   @relation(fields: [id_adres], references: [id_adres])
-  przedmioty         Przedmioty_transakcji[]
+  id_transakcji   Int                     @id @default(autoincrement())
+  id_uzytkownika  Int
+  kwota_calkowita Decimal                 @db.Decimal(10, 2)
+  stan            String
+  id_adres        Int
+  data            DateTime                @default(now())
+  przedmioty      Przedmioty_transakcji[]
+  adres           Adres                   @relation(fields: [id_adres], references: [id_adres])
+  uzytkownik      Uzytkownik              @relation(fields: [id_uzytkownika], references: [id_uzytkownika])
 
   @@index([id_uzytkownika])
   @@index([id_adres])
@@ -107,9 +107,9 @@ model Przedmioty_transakcji {
   id_transakcji   Int
   id_przedmiotu   Int
   liczba          Int
-  cena_przedmiotu Decimal     @db.Decimal(10, 2)
-  transakcja      Transakcja  @relation(fields: [id_transakcji], references: [id_transakcji])
-  przedmiot       Przedmioty  @relation(fields: [id_przedmiotu], references: [id_przedmiotu])
+  cena_przedmiotu Decimal    @db.Decimal(10, 2)
+  przedmiot       Przedmioty @relation(fields: [id_przedmiotu], references: [id_przedmiotu])
+  transakcja      Transakcja @relation(fields: [id_transakcji], references: [id_transakcji])
 
   @@id([id_transakcji, id_przedmiotu])
   @@index([id_przedmiotu])

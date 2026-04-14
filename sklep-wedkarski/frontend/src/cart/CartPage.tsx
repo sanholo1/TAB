@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { addToCart, fetchProductById, getCart, removeFromCart } from "../products/products.api";
 import { toast } from "react-toastify";
+import { fetchLastAddress } from "../orders/orders.api";
 
 export default function CartPage() {
 const [loading, setLoading] = useState(true);
@@ -37,9 +38,11 @@ const loadCartItems = async () => {
                 };
             }));
         setCartItems(detailedItems);
-        //if (token) {
-        //
-        // }
+        if (token) {
+            const lastAddress = await fetchLastAddress();
+            console.log("Dane z API:", lastAddress);
+            setEmail(lastAddress.address?.email || "");
+        }
 } catch (error) {
     console.error("Failed to load cart items:", error);
 }
@@ -156,6 +159,7 @@ return (
             {invalidProductIDs.length > 0 && (
                 <p className="text-red-500 text-sm mt-2">Niektóre produkty przekraczają stan magazynowy.</p>
             )}
+        <div className="mt-10 text-sm text-gray-500"> email to: {email} </div>
     </div>
   );
 }
