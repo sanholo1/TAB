@@ -5,6 +5,11 @@ import { toast } from "react-toastify";
 export default function CartPage() {
 const [loading, setLoading] = useState(true);
 const [cartItems, setCartItems] = useState<any[]>([]);
+const [email, setEmail] = useState("");
+const [city, setCity] = useState("");
+const [postalCode, setPostalCode] = useState("");
+const [street, setStreet] = useState("");
+const [houseNumber, setHouseNumber] = useState("");
 
 useEffect(() => {
 const loadCartItems = async () => {
@@ -32,6 +37,9 @@ const loadCartItems = async () => {
                 };
             }));
         setCartItems(detailedItems);
+        //if (token) {
+        //
+        // }
 } catch (error) {
     console.error("Failed to load cart items:", error);
 }
@@ -88,6 +96,10 @@ const handleRemoveOne = async (id_przedmiotu: number) => {
 
 const handleCheckout = async () => {
     try {
+    if (email.trim() === "" || city.trim() === "" || postalCode.trim() === "" || street.trim() === "" || houseNumber.trim() === "") {
+        toast.error("Proszę wypełnić wszystkie dane dostawy przed przejściem do płatności.");
+        return;
+    }
     const checkoutItems = await Promise.all(cartItems.map(async (item: any) => 
             {
                 const product = await fetchProductById(item.id_przedmiotu);
@@ -121,21 +133,29 @@ if (loading) return <div className="p-4">Ładowanie danych koszyka...</div>;
 return (
     <div className="p-4 rounded-lg border border-gray-300 min-h-screen bg-white shadow-xl">
         <h1 className="text-2xl font-bold mb-4">Twój koszyk</h1>
-        {cartItems.length === 0 ? (
-            <p>Tu będzie lista produktów w koszyku oraz możliwość przejścia do płatności.</p>
-            ) : (cartItems.map(item => <div key={item.id_przedmiotu}>Id przedmiotu: {item.id_przedmiotu}, Ilość: {item.ilosc}, Stan Magazynowy: {item.stan_magazynowy}, Nazwa: {item.nazwa}, Kategoria: {item.kategoria}, Cena sprzedaży: {item.cena_sprzedazy}, Cena promocji: {item.cena_prom} | <button onClick={() => handleRemove(item.id_przedmiotu)}>Usuń</button> | <button onClick={() => handleRemoveOne(item.id_przedmiotu)}>Usuń jedną </button> 
-                <p className="text-red-500 text-sm"> {invalidProductIDs.includes(item.id_przedmiotu) ? "Przekracza stan magazynowy!" : ""}</p>
-            </div>))
-        }
+            {cartItems.length === 0 ? (
+                <p>Tu będzie lista produktów w koszyku oraz możliwość przejścia do płatności.</p>
+                ) : (cartItems.map(item => <div key={item.id_przedmiotu}>Id przedmiotu: {item.id_przedmiotu}, Ilość: {item.ilosc}, Stan Magazynowy: {item.stan_magazynowy}, Nazwa: {item.nazwa}, Kategoria: {item.kategoria}, Cena sprzedaży: {item.cena_sprzedazy}, Cena promocji: {item.cena_prom} | <button onClick={() => handleRemove(item.id_przedmiotu)}>Usuń</button> | <button onClick={() => handleRemoveOne(item.id_przedmiotu)}>Usuń jedną </button> 
+                    <p className="text-red-500 text-sm"> {invalidProductIDs.includes(item.id_przedmiotu) ? "Przekracza stan magazynowy!" : ""}</p>
+                </div>))
+            }
         <div>     
-            <p> Podsumowanie ceny: {calculateTotal.toFixed(2)} zł</p>
+                <p> Podsumowanie ceny: {calculateTotal.toFixed(2)} zł</p>
         </div>
-        <button onClick={() => handleCheckout()} className="bg-sky-700 p-2.5 rounded-full text-white mt-4 disabled:bg-gray-500" disabled={cartItems.length === 0 || invalidProductIDs.length > 0 }>
-            Przejdź do płatności
+        <div className="text-2xl font-bold mb-4 mt-10">Dane dostawy</div>
+        <div className="flex flex-col gap-4 mb-6">
+            <input type="email" placeholder="Adres e-mail" className="border border-gray-300 rounded-md p-2 mt-4 w-full max-w-sm" maxLength={30} value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input type="text" placeholder="Miasto" className="border border-gray-300 rounded-md p-2 mt-4 w-full max-w-sm" maxLength={30} value={city} onChange={(e) => setCity(e.target.value)} />
+            <input type="text" placeholder="Kod pocztowy" className="border border-gray-300 rounded-md p-2 mt-4 w-full max-w-sm" maxLength={10} value={postalCode} onChange={(e) => setPostalCode(e.target.value)} />
+            <input type="text" placeholder="Ulica" className="border border-gray-300 rounded-md p-2 mt-4 w-full max-w-sm" maxLength={30} value={street} onChange={(e) => setStreet(e.target.value)} />
+            <input type="text" placeholder="Numer domu" className="border border-gray-300 rounded-md p-2 mt-4 w-full max-w-sm" maxLength={10} value={houseNumber} onChange={(e) => setHouseNumber(e.target.value)} />
+        </div>
+        <button onClick={() => handleCheckout()} className="bg-sky-700 p-2.5 rounded-full text-white mt-4 disabled:bg-gray-500" disabled={cartItems.length === 0 || invalidProductIDs.length > 0}>
+                Przejdź do płatności
         </button>
-        {invalidProductIDs.length > 0 && (
-            <p className="text-red-500 text-sm mt-2">Niektóre produkty przekraczają stan magazynowy.</p>
-        )}
+            {invalidProductIDs.length > 0 && (
+                <p className="text-red-500 text-sm mt-2">Niektóre produkty przekraczają stan magazynowy.</p>
+            )}
     </div>
   );
 }
