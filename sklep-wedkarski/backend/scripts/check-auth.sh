@@ -50,8 +50,8 @@ echo "BASE_URL=$BASE_URL"
 
 request "POST" "/auth/register" "{\"username\":\"$USERNAME\",\"firstName\":\"Jan\",\"lastName\":\"Kowalski\",\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\",\"confirmPassword\":\"$PASSWORD\"}"
 assert_status "201" "$STATUS" "register success"
-printf '%s\n' "$BODY" | grep -q '"redirectTo":"/login"' || { echo "[FAIL] register redirect missing"; echo "Body: $BODY"; exit 1; }
-echo "[OK] register redirect /login"
+printf '%s\n' "$BODY" | grep -q '"redirectTo":"/profile"' || { echo "[FAIL] register redirect missing"; echo "Body: $BODY"; exit 1; }
+echo "[OK] register redirect /profile"
 
 request "POST" "/auth/register" "{\"username\":\"$USERNAME\",\"firstName\":\"Jan\",\"lastName\":\"Kowalski\",\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\",\"confirmPassword\":\"$PASSWORD\"}"
 assert_status "409" "$STATUS" "register duplicate"

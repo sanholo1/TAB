@@ -9,7 +9,7 @@ datasource db {
 
 model Adres {
   id_adres     Int          @id @default(autoincrement())
-  kraj         String       @db.VarChar(191)
+  email        String       @db.VarChar(191)
   miasto       String       @db.VarChar(191)
   kod_pocztowy String       @db.VarChar(191)
   ulica        String       @db.VarChar(191)
