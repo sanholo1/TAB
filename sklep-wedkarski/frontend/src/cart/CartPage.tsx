@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { addToCart, fetchProductById, getCart, removeFromCart } from "../products/products.api";
 import { toast } from "react-toastify";
-import { fetchLastAddress } from "../orders/orders.api";
+import { createGuestOrder, createOrder, fetchLastAddress } from "../orders/orders.api";
 
 export default function CartPage() {
 const [loading, setLoading] = useState(true);
@@ -11,6 +11,10 @@ const [city, setCity] = useState("");
 const [postalCode, setPostalCode] = useState("");
 const [street, setStreet] = useState("");
 const [houseNumber, setHouseNumber] = useState("");
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const postalCodeRegex = /^[0-9]{2}-[0-9]{3}$/;
+const cityRegex = /^[a-zA-Z\s-]{2,}$/;
+const streetRegex = /^[a-zA-Z0-9\s.-]{2,}$/;
 
 useEffect(() => {
 const loadCartItems = async () => {
@@ -40,8 +44,11 @@ const loadCartItems = async () => {
         setCartItems(detailedItems);
         if (token) {
             const lastAddress = await fetchLastAddress();
-            console.log("Dane z API:", lastAddress);
             setEmail(lastAddress.address?.email || "");
+            setCity(lastAddress.address?.miasto || "");
+            setPostalCode(lastAddress.address?.kod_pocztowy || "");
+            setStreet(lastAddress.address?.ulica || "");
+            setHouseNumber(lastAddress.address?.nr_domu || "");
         }
 } catch (error) {
     console.error("Failed to load cart items:", error);
@@ -103,6 +110,19 @@ const handleCheckout = async () => {
         toast.error("Proszę wypełnić wszystkie dane dostawy przed przejściem do płatności.");
         return;
     }
+    if (emailRegex.test(email) === false) {
+        toast.error("Proszę wpisać poprawny adres email.");
+        return;
+    }
+    if (postalCodeRegex.test(postalCode) === false) {
+        toast.error("Proszę wpisać poprawny kod pocztowy.");
+        return;
+    }
+    if (cityRegex.test(city) === false || streetRegex.test(street) === false) {
+        toast.error("Proszę wpisać poprawną nazwę miasta lub ulicy.");
+        return;
+    }
+
     const checkoutItems = await Promise.all(cartItems.map(async (item: any) => 
             {
                 const product = await fetchProductById(item.id_przedmiotu);
@@ -123,7 +143,35 @@ const handleCheckout = async () => {
         return;
     }
     else {
-        toast.success("Przechodzenie do płatności.");
+        const token = localStorage.getItem("auth_token");
+        if(token)
+        {
+        await createOrder({
+            email,
+            miasto: city,
+            kod_pocztowy: postalCode,
+            ulica: street,
+            nr_domu: houseNumber
+        });
+        toast.success("Przechodzenie do płatności!");
+        }
+        else 
+        {
+        const itemsForApi = cartItems.map(item => ({
+        id_przedmiotu: item.id_przedmiotu,
+        ilosc: item.ilosc
+        }));
+
+        await createGuestOrder({
+        email: email,
+        miasto: city,
+        kod_pocztowy: postalCode,
+        ulica: street,
+        nr_domu: houseNumber,
+        items: itemsForApi
+        });
+        toast.success("Przechodzenie do płatności!");
+        }
     }
 } catch (error) {
     console.error("Checkout failed:", error);
@@ -147,7 +195,7 @@ return (
         </div>
         <div className="text-2xl font-bold mb-4 mt-10">Dane dostawy</div>
         <div className="flex flex-col gap-4 mb-6">
-            <input type="email" placeholder="Adres e-mail" className="border border-gray-300 rounded-md p-2 mt-4 w-full max-w-sm" maxLength={30} value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input type="text" placeholder="Adres e-mail" className="border border-gray-300 rounded-md p-2 mt-4 w-full max-w-sm" maxLength={30} value={email} onChange={(e) => setEmail(e.target.value)} />
             <input type="text" placeholder="Miasto" className="border border-gray-300 rounded-md p-2 mt-4 w-full max-w-sm" maxLength={30} value={city} onChange={(e) => setCity(e.target.value)} />
             <input type="text" placeholder="Kod pocztowy" className="border border-gray-300 rounded-md p-2 mt-4 w-full max-w-sm" maxLength={10} value={postalCode} onChange={(e) => setPostalCode(e.target.value)} />
             <input type="text" placeholder="Ulica" className="border border-gray-300 rounded-md p-2 mt-4 w-full max-w-sm" maxLength={30} value={street} onChange={(e) => setStreet(e.target.value)} />
@@ -159,7 +207,6 @@ return (
             {invalidProductIDs.length > 0 && (
                 <p className="text-red-500 text-sm mt-2">Niektóre produkty przekraczają stan magazynowy.</p>
             )}
-        <div className="mt-10 text-sm text-gray-500"> email to: {email} </div>
     </div>
   );
 }
