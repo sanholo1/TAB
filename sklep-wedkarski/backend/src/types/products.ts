@@ -4,4 +4,5 @@ export type GetAllProductsParams = {
   min_price?: number;
   max_price?: number;
   price?: string;
+  limit?: number;
 };

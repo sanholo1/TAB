@@ -1,107 +1,107 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
-
-import Header from "./components/Header.tsx";
-import CategoryFilter from "./components/CategoryFilter.tsx";
-import PriceFilter from "./components/PriceFilter.tsx";
+﻿import React, { useState } from "react";
+import { BrowserRouter, Route, Routes, useNavigate, useLocation } from "react-router-dom";
+import Header from "./components/Header";
+import HomePage from "./homepage/HomePage";
 import ProductsPage from "./products/ProductsPage";
 import ProductDetailPage from "./products/ProductDetailPage";
+import LoginPage from "./auth/LoginPage";
+import RegisterPage from "./auth/RegisterPage";
+import ProfilePage from "./auth/ProfilePage";
+import InventoryPage from "./inventory/InventoryPage";
+import type { User } from "./auth/auth.types";
 
-export interface Product {
-  id_przedmiotu: number;
-  nazwa: string;
-  opis: string | null;
-  cena_sprzedazy: number;
-  id_kategorii: number;
-}
+const getStoredUser = (): User | null => {
+  const savedUser = localStorage.getItem("auth_user");
 
-export interface Category {
-  id_kategorii: number;
-  nazwa: string;
-}
+  if (!savedUser) {
+    return null;
+  }
 
-const DashboardPage: React.FC = () => {
+  try {
+    return JSON.parse(savedUser) as User;
+  } catch {
+    localStorage.removeItem("auth_user");
+    return null;
+  }
+};
+
+const AppContent: React.FC = () => {
   const navigate = useNavigate();
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
-  const [selectedPrice, setSelectedPrice] = useState<string | null>(null);
-  const [searchInput, setSearchInput] = useState<string>("");
+  const location = useLocation();
+  
+  const [user, setUser] = useState<User | null>(() => getStoredUser());
+  const [searchInput, setSearchInput] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("search") || "";
+  });
 
-  const goToProducts = (options?: { category?: number | null; search?: string; price?: string | null }) => {
-    const params = new URLSearchParams();
-    const searchValue = options?.search?.trim();
-    if (searchValue) params.set("search", searchValue);
-    if (options?.category) params.set("category", String(options.category));
-    if (options?.price) params.set("price", options.price);
-    const query = params.toString();
-    navigate(`/products${query ? `?${query}` : ""}`);
+  const handleLogin = (user: User, token: string) => {
+    localStorage.setItem("auth_token", token);
+    localStorage.setItem("auth_user", JSON.stringify(user));
+    setUser(user);
   };
 
-  const handleSearchClick = () => {
-    if (!searchInput.trim() && !selectedCategory) {
-      return;
+  const handleLogout = () => {
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("auth_user");
+    setUser(null);
+    navigate("/login");
+  };
+
+  const handleSearch = () => {
+    const trimmed = searchInput.trim();
+    const currentParams = new URLSearchParams(location.search);
+    if (!trimmed){
+      currentParams.delete("search");
+    } else {
+      currentParams.set("search", trimmed)
     }
-    goToProducts({
-      search: searchInput,
-      category: selectedCategory,
-      price: selectedPrice,
-    });
+    navigate(`/products?${currentParams.toString()}`);
   };
-
-  const handleCategoryChange = (categoryId: number | null) => {
-    setSelectedCategory(categoryId);
-    if (categoryId) {
-      goToProducts({
-        category: categoryId,
-        search: searchInput,
-        price: selectedPrice,
-      });
-    }
-  };
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await axios.get<Category[]>("http://localhost:3000/categories");
-        setCategories(res.data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchCategories();
-  }, []);
 
   return (
-    <div>
+    <div className="min-h-screen bg-sky-50 text-slate-900">
+      {/* HEADER */}
       <Header
+        user={user}
+        onLogout={handleLogout}
         search={searchInput}
         setSearch={setSearchInput}
-        onSearch={handleSearchClick}
+        onSearch={handleSearch}
       />
-      <CategoryFilter
-        categories={categories}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={handleCategoryChange}
-      />
-      <PriceFilter
-        selectedPrice={selectedPrice}
-        setSelectedPrice={setSelectedPrice}
-      />
+
+      {/* VIEWS CONTAINER */}
+      <main className="mx-auto w-full max-w-7xl px-4 py-6">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/products" element={<ProductsPage />} />
+          <Route path="/products/:id" element={<ProductDetailPage />} />
+          <Route
+            path="/inventory"
+            element={<InventoryPage currentUser={user} />}
+          />
+          <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+          <Route path="/register" element={<RegisterPage onLogin={handleLogin} />} />
+          <Route 
+            path="/profile" 
+            element={
+              <ProfilePage 
+                currentUser={user} 
+                onUpdateUser={setUser} 
+                onLogout={handleLogout} 
+              />
+            } 
+          />
+        </Routes>
+      </main>
     </div>
   );
 };
 
-const App: React.FC = () => {
+export default function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<DashboardPage />} />
-        <Route path="/products" element={<ProductsPage />} />
-        <Route path="/products/:id" element={<ProductDetailPage />} />
-      </Routes>
+      <AppContent />
     </BrowserRouter>
   );
-};
-
-export default App;
+}
