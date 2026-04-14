@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { fetchCategories, fetchProducts } from "../products/products.api";
 import type { Category, Product } from "../products/products.types";
 import ProductCard from "../components/ProductCard";
+import { Truck, Shrimp, ShieldCheck } from "lucide-react";
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -40,40 +41,41 @@ const HomePage: React.FC = () => {
   return (
     <div className="flex flex-col gap-12 py-6">
       {/* HELLO */}
-      <div className="relative w-full overflow-hidden rounded-[2.5rem] bg-sky-800 px-8 py-16 text-center text-white shadow-lg md:py-24">
-        <div className="absolute -left-20 -top-20 h-64 w-64 rounded-full bg-sky-700/50 blur-3xl"></div>
-        <div className="absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-sky-600/50 blur-3xl"></div>
-        
-        <div className="relative z-10 mx-auto max-w-2xl">
-          <h1 className="mb-6 text-4xl font-extrabold tracking-tight md:text-5xl">
+      <div className="relative w-full overflow-hidden rounded-[2.5rem] bg-sky-800 px-8 py-16 text-center text-white shadow-lg md:py-24 bg-cover bg-center"
+      style={{ backgroundImage: "url('/welcome_image.png')" }}
+      >
+      <div className="absolute inset-0 bg-sky-950/30 z-0"></div>
+        <div className="relative z-10 mx-auto max-w-3xl flex flex-col items-center gap-4">
+          <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">
             Witaj w Sklepie Wędkarskim!
           </h1>
-          <p className="mb-10 text-lg font-medium text-sky-100 md:text-xl">
+          
+          <p className="text-lg font-semibold text-sky-50 md:text-xl">
             Wszystko, czego potrzebujesz żeby złowić największą sztukę. Najlepszy sprzęt, topowe marki i gwarancja udanego połowu.
           </p>
-          <button
+          
+          <button className="rounded-2xl bg-white px-8 py-4 text-base font-bold text-sky-900 shadow-sm transition hover:bg-sky-50 hover:shadow-md"
             onClick={() => navigate("/products")}
-            className="rounded-2xl bg-white px-8 py-4 text-base font-bold text-sky-900 shadow-sm transition hover:bg-sky-50 hover:shadow-md"
           >
             Przejdź do pełnego katalogu
           </button>
         </div>
       </div>
 
-      {/* 2. Pasek zaufania (USPs) */}
+      {/* FUN SECTION */}
       <div className="grid grid-cols-1 gap-4 rounded-[1.5rem] bg-white p-6 shadow-sm sm:grid-cols-3 border border-slate-100">
         <div className="flex flex-col items-center text-center">
-          <span className="mb-2 text-2xl">[ikonka]</span>
+          <Truck className="mb-3 h-8 w-8 text-sky-600" strokeWidth={1.5} />
           <h3 className="font-semibold text-slate-900">Darmowa dostawa</h3>
-          <p className="text-sm text-slate-500">Dla zamówień powyżej 200 zł</p>
+          <p className="text-sm text-slate-500">I podwózka nad staw</p>
         </div>
         <div className="flex flex-col items-center text-center">
-          <span className="mb-2 text-2xl">[ikonka]</span>
+          <Shrimp className="mb-3 h-8 w-8 text-sky-600" strokeWidth={1.5} />
           <h3 className="font-semibold text-slate-900">Najwyższa jakość</h3>
           <p className="text-sm text-slate-500">Każda ryba chciałaby dać się złapać</p>
         </div>
         <div className="flex flex-col items-center text-center">
-          <span className="mb-2 text-2xl">[ikonka]</span>
+          <ShieldCheck className="mb-3 h-8 w-8 text-sky-600" strokeWidth={1.5} />
           <h3 className="font-semibold text-slate-900">30 dni na zwrot</h3>
           <p className="text-sm text-slate-500">Ale nie będzie on potrzebny</p>
         </div>
@@ -82,14 +84,16 @@ const HomePage: React.FC = () => {
       {/* CATEGORY */}
       <section>
         <h2 className="mb-6 text-2xl font-bold text-slate-900">Popularne kategorie</h2>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
           {categories.map((cat) => (
             <button
               key={cat.id_kategorii}
               onClick={() => goToCategory(cat.id_kategorii)}
-              className="group flex h-24 items-center justify-center rounded-[1.5rem] border border-slate-200 bg-white p-4 text-lg font-semibold text-slate-700 shadow-sm transition hover:border-sky-300 hover:text-sky-700 hover:shadow-md"
+              className="group flex h-24 items-center justify-center rounded-[1.5rem] border border-slate-200 bg-white p-4 text-lg font-semibold text-slate-700 shadow-sm transition hover:border-sky-300 hover:text-sky-700 hover:shadow-xl"
             >
-              {cat.nazwa}
+              <p className="text-xl text-slate-800 font-semibold">
+                {cat.nazwa}
+              </p>
             </button>
           ))}
         </div>

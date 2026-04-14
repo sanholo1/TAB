@@ -26,8 +26,8 @@ coverage/
 # Prisma generated output (if using custom output path)
 generated/
 
-# Uploaded files
-uploads/
+# Uploaded files (NOW NOT IGNORING!)
+!uploads/
 
 # OS / editor junk
 .DS_Store

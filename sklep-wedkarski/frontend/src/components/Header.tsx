@@ -1,6 +1,7 @@
 ﻿import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import type { User } from "../auth/auth.types";
+import { X } from "lucide-react";
 
 interface HeaderProps {
   user: User | null;
@@ -13,12 +14,26 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ user, onLogout, search, setSearch, onSearch }) => {
   const canAccessInventory = user?.roleId === 2 || user?.roleId === 3;
 
+  const location = useLocation();
+  const navigate = useNavigate();
+  const currentParams = new URLSearchParams(location.search);
+  const activeSearch = currentParams.get("search");
+
+  const handleClearSearch = () => {
+    setSearch("");
+    currentParams.delete("search");
+    navigate(`/products?${currentParams.toString()}`); // <- does not erase other filters
+  };
+
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-slate-50/90 backdrop-blur-xl shadow-sm">
       <div className="mx-auto flex flex-wrap items-center gap-4 px-4 py-4 max-w-7xl">
-        <NavLink to="/" className="text-xl font-semibold tracking-tight text-sky-900">
-          Sklep Wędkarski
-        </NavLink>
+        
+        <div className="flex items-center gap-3">
+          <NavLink to="/" className="text-xl font-semibold tracking-tight text-sky-900">
+            Sklep Wędkarski
+          </NavLink>
+        </div>
 
         <nav className="flex flex-wrap items-center gap-2">
           <NavLink
@@ -31,6 +46,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout, search, setSearch, onSe
           >
             Produkty
           </NavLink>
+
           <NavLink
             to="/profile"
             className={({ isActive }) =>
@@ -41,6 +57,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout, search, setSearch, onSe
           >
             Profil
           </NavLink>
+
           {canAccessInventory && (
             <NavLink
               to="/inventory"
@@ -55,18 +72,31 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout, search, setSearch, onSe
           )}
         </nav>
 
-        <div className="flex flex-1 min-w-[240px] items-center gap-2">
-          <input
-            type="text"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Szukaj produktu..."
-            className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-sky-500"
-          />
-          <button
+        <div className="flex flex-1 items-center gap-2">
+  
+          <div className="flex flex-1 items-center gap-2 rounded-2xl border border-slate-200 bg-white py-2.5 pl-2.5 pr-4 transition focus-within:border-sky-500 focus-within:ring-1 focus-within:ring-sky-500">
+            
+            {activeSearch && (
+              <button className="flex shrink-0 items-center gap-1 rounded-full bg-rose-100 px-2.5 py-1 text-xs font-semibold text-rose-700 transition hover:bg-rose-200"
+                onClick={handleClearSearch}
+              >
+                <X className="h-3.5 w-3.5" />
+                Wyczyść
+              </button>
+            )}
+
+            <input className="w-full flex-1 bg-transparent py-1 text-sm outline-none placeholder:text-slate-400"
+              type="text"
+              placeholder="Szukaj produktów..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && onSearch()}
+            />
+          </div>
+
+          <button className="shrink-0 rounded-2xl bg-sky-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-sky-800"
             type="button"
             onClick={onSearch}
-            className="rounded-2xl bg-sky-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-800"
           >
             Szukaj
           </button>
@@ -76,25 +106,23 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout, search, setSearch, onSe
           {user ? (
             <>
               <span className="text-sm text-slate-700">Cześć, <strong className="text-slate-900">{user.username}</strong></span>
-              <button
+              <button className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
                 type="button"
                 onClick={onLogout}
-                className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
               >
                 Wyloguj
               </button>
             </>
           ) : (
             <>
-              <NavLink
+              <NavLink className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
                 to="/login"
-                className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
+                
               >
                 Zaloguj
               </NavLink>
-              <NavLink
+              <NavLink className="rounded-2xl bg-sky-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-800"
                 to="/register"
-                className="rounded-2xl bg-sky-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-800"
               >
                 Rejestracja
               </NavLink>
