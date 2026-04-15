@@ -82,6 +82,7 @@ const handleRemove = async (id_przedmiotu: number) => {
     else {
         await removeFromCart(id_przedmiotu);
     }
+    window.dispatchEvent(new Event("cart-updated"));
 };
 
 const handleRemoveOne = async (id_przedmiotu: number) => {
@@ -104,6 +105,7 @@ const handleRemoveOne = async (id_przedmiotu: number) => {
             await addToCart(id_przedmiotu, newQuantity);
         }
     }
+    window.dispatchEvent(new Event("cart-updated"));
 };
 
 const handleCheckout = async () => {
@@ -175,6 +177,7 @@ const handleCheckout = async () => {
         });
         toast.success("Przechodzenie do płatności!");
         }
+        window.dispatchEvent(new Event("cart-updated"));
         navigate(`/payment/${order.id_transakcji}`)
     }
 } catch (error) {

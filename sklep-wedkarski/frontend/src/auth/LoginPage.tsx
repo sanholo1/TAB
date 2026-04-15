@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { loginUser } from "./auth.api";
 import type { User } from "./auth.types";
 import { mergeCart } from "../products/products.api";
+import { toast } from "react-toastify";
 import {
   hasErrors,
   mapApiErrors,
@@ -74,7 +75,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           console.error("Dokładny błąd:", error);
         }
       }
-
+      window.dispatchEvent(new Event("cart-updated"));
+      toast.success("Zalogowano pomyślnie!");
       navigate("/profile");
     } catch (err) {
       setApiErrors(mapApiErrors<LoginFields>(err));

@@ -64,6 +64,20 @@ const PaymentGateway: React.FC = () => {
     return () => clearInterval(timer);
   }, [id, navigate]);
 
+  const find_nav = (() => {
+    try {
+      const token = localStorage.getItem("auth_token");
+      if (token) { // logged user
+        navigate("/profile");
+      } else { // guest
+          navigate("/");
+        }
+    } 
+    catch (err) {
+      console.error("Błąd pobierania koszyka z bazy:", err);
+    }
+  })
+
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     let paymentError = false;
@@ -84,7 +98,7 @@ const PaymentGateway: React.FC = () => {
     }
 
     if (method === "BLIK" && blik.length !== 6) {
-      toast.warning("Kod BLIK musi składać się z 6 cyfr.");
+      toast.warning("Kod BLIK składa się z 6 cyfr.");
       paymentError = true;
     }
 
@@ -109,7 +123,7 @@ const PaymentGateway: React.FC = () => {
         window.open(bankUrl, "_blank");
       }
 
-      navigate("/profile");
+      find_nav();
     } catch (err) {
       toast.update(toastId, {
         render: "Błąd płatności. Spróbuj ponownie.",

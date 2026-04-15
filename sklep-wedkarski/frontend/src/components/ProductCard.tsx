@@ -61,6 +61,7 @@ const ProductCard: React.FC<Props> = ({ product }) => {
       toast.error(`Nie udało się dodać produktu: ${product.nazwa} do koszyka. Sprawdź dostępną ilość lub spróbuj ponownie później.`);
       }
     }
+    window.dispatchEvent(new Event("cart-updated"));
   };
 
   const imageUrl = product.zdjecie_url

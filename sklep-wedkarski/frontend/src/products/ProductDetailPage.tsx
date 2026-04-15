@@ -83,6 +83,7 @@ export default function ProductDetailPage() {
       toast.error(`Nie udało się dodać produktu: ${product.nazwa} do koszyka. Sprawdź dostępną ilość lub spróbuj ponownie później.`);
       }
     }
+    window.dispatchEvent(new Event("cart-updated"));
   }
 
   return (
