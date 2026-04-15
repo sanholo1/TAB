@@ -13,6 +13,7 @@ import ReportsGenerating from "./inventory/ReportsGeneratingPage";
 import CartPage from "./cart/CartPage";
 import { ToastContainer } from "react-toastify"; //Dodany import dla ToastContainer do powiadomień
 import 'react-toastify/dist/ReactToastify.css';
+import PaymentGateway from "./orders/payment/PaymentGateway";
 
 const getStoredUser = (): User | null => {
   const savedUser = localStorage.getItem("auth_user");
@@ -39,10 +40,23 @@ const AppContent: React.FC = () => {
     return params.get("search") || "";
   });
 
+  const persistUser = (nextUser: User | null) => {
+    setUser(nextUser);
+
+    if (nextUser) {
+      localStorage.setItem("auth_user", JSON.stringify(nextUser));
+    } else {
+      localStorage.removeItem("auth_user");
+    }
+  };
+
   const handleLogin = (user: User, token: string) => {
     localStorage.setItem("auth_token", token);
-    localStorage.setItem("auth_user", JSON.stringify(user));
-    setUser(user);
+    persistUser(user);
+  };
+
+  const handleUpdateUser = (nextUser: User) => {
+    persistUser(nextUser);
   };
 
   const handleLogout = () => {
@@ -84,6 +98,7 @@ const AppContent: React.FC = () => {
             path="/inventory"
             element={<InventoryPage currentUser={user} />}
           />
+          <Route path="/payment/:id" element={<PaymentGateway />}/>
           <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
           <Route path="/register" element={<RegisterPage onLogin={handleLogin} />} />
           <Route 
@@ -91,7 +106,7 @@ const AppContent: React.FC = () => {
             element={
               <ProfilePage 
                 currentUser={user} 
-                onUpdateUser={setUser} 
+                onUpdateUser={handleUpdateUser} 
                 onLogout={handleLogout} 
               />
             } 
@@ -100,7 +115,13 @@ const AppContent: React.FC = () => {
           <Route path="/cart" element={<CartPage />} />
         </Routes>
       </main>
-      <ToastContainer style={{ marginTop: "90px" }} position="top-right" autoClose={3000} theme="colored" limit={3} />
+      <ToastContainer
+        style={{ marginTop: "90px" }}
+        position="top-right"
+        autoClose={3000}
+        theme="light"
+        limit={3}
+      />
     </div>
   );
 };

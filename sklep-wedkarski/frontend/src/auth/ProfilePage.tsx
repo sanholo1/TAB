@@ -3,6 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { fetchOrders, fetchProfile, updateProfile } from "./auth.api";
 import type { User } from "./auth.types";
 import type { Order } from "../orders/orders.types";
+import {
+  hasErrors,
+  mapApiErrors,
+  mergeErrors,
+  validateProfile,
+  type FieldErrors,
+  type ProfileFields,
+} from "./auth-validation";
 
 interface ProfilePageProps {
   currentUser: User | null;
@@ -18,8 +26,9 @@ export default function ProfilePage({ currentUser, onUpdateUser, onLogout }: Pro
   const [email, setEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [apiErrors, setApiErrors] = useState<FieldErrors<ProfileFields>>({});
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
@@ -27,6 +36,34 @@ export default function ProfilePage({ currentUser, onUpdateUser, onLogout }: Pro
   const [displayedOrderCount, setDisplayedOrderCount] = useState(10);
   const navigate = useNavigate();
   const isGuestAccount = profile?.email === "gosc@sklep.pl" || profile?.username === "GoscNiezalogowany";
+
+  const validationErrors = submitAttempted
+    ? validateProfile({ username, firstName, lastName, email, currentPassword, newPassword }, profile)
+    : {};
+
+  const errors = mergeErrors(validationErrors, apiErrors);
+  const hasVisibleErrors = hasErrors(errors);
+
+  useEffect(() => {
+    if (!hasVisibleErrors) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setSubmitAttempted(false);
+      setApiErrors({});
+    }, 4500);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [hasVisibleErrors]);
+
+  const clearApiField = (field: ProfileFields | "form") => {
+    setApiErrors((current) => {
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
+  };
 
   const toggleOrderExpanded = (orderId: number) => {
     setExpandedOrderIds((prev) => {
@@ -63,11 +100,7 @@ export default function ProfilePage({ currentUser, onUpdateUser, onLogout }: Pro
         setEmail(nextProfile.email);
         setOrders(nextOrders);
       } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("Nie udało się pobrać profilu.");
-        }
+        setApiErrors(mapApiErrors<ProfileFields>(err));
       } finally {
         setOrdersLoading(false);
       }
@@ -78,39 +111,67 @@ export default function ProfilePage({ currentUser, onUpdateUser, onLogout }: Pro
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setError(null);
-    setMessage(null);
-    setLoading(true);
+    setSubmitAttempted(true);
+    setSuccessMessage(null);
+    setApiErrors({});
+
+    const hasProfileChanges =
+      profile === null ||
+      username !== profile.username ||
+      firstName !== profile.firstName ||
+      lastName !== profile.lastName ||
+      email !== profile.email ||
+      currentPassword.length > 0 ||
+      newPassword.length > 0;
+
+    if (!hasProfileChanges) {
+      return;
+    }
+
+    const nextValidationErrors = validateProfile({ username, firstName, lastName, email, currentPassword, newPassword }, profile);
+    if (hasErrors(nextValidationErrors)) {
+      return;
+    }
 
     const payload: Record<string, string> = {};
-    if (username !== profile?.username) payload.username = username;
-    if (firstName !== profile?.firstName) payload.firstName = firstName;
-    if (lastName !== profile?.lastName) payload.lastName = lastName;
-    if (email !== profile?.email) payload.email = email;
+    if (username !== profile?.username) payload.username = username.trim();
+    if (firstName !== profile?.firstName) payload.firstName = firstName.trim();
+    if (lastName !== profile?.lastName) payload.lastName = lastName.trim();
+    if (email !== profile?.email) payload.email = email.trim();
     if (newPassword) {
       payload.newPassword = newPassword;
       payload.currentPassword = currentPassword;
     }
 
-    if (Object.keys(payload).length === 0) {
-      setError("Wprowadź zmiany, aby zaktualizować profil.");
-      setLoading(false);
-      return;
-    }
+    setLoading(true);
 
     try {
       const result = await updateProfile(payload);
       setProfile(result.profile);
       onUpdateUser(result.profile);
-      setMessage("Profil został zaktualizowany.");
+      setSuccessMessage("Profil został zaktualizowany.");
       setCurrentPassword("");
       setNewPassword("");
+      window.setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Nie udało się zaktualizować profilu.");
+      const nextApiErrors = mapApiErrors<ProfileFields>(err);
+      const hasTakenConflict =
+        nextApiErrors.form?.some((message) => {
+          const normalized = message.toLowerCase();
+          return normalized.includes("zajęte") || normalized.includes("already taken") || normalized.includes("already exists");
+        }) ?? false;
+
+      if (hasTakenConflict && profile) {
+        if (payload.username !== undefined) {
+          setUsername(profile.username);
+        }
+
+        if (payload.email !== undefined) {
+          setEmail(profile.email);
+        }
       }
+
+      setApiErrors(nextApiErrors);
     } finally {
       setLoading(false);
     }
@@ -150,16 +211,22 @@ export default function ProfilePage({ currentUser, onUpdateUser, onLogout }: Pro
       </section>
 
       <section className="rounded-[2rem] border border-slate-200 bg-white/90 p-8 shadow-xl shadow-slate-300/20">
-        <form className="grid gap-5" onSubmit={handleSubmit}>
+        <form className="grid gap-5" onSubmit={handleSubmit} noValidate>
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="space-y-2 text-sm font-medium text-slate-700">
               Nazwa użytkownika
               <input
                 type="text"
                 value={username}
-                onChange={(event) => setUsername(event.target.value)}
+                onChange={(event) => {
+                  setUsername(event.target.value);
+                  clearApiField("username");
+                  clearApiField("form");
+                }}
                 className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-sky-500"
+                aria-invalid={Boolean(errors.username?.length)}
               />
+              <FieldMessage messages={errors.username} />
             </label>
 
             <label className="space-y-2 text-sm font-medium text-slate-700">
@@ -167,9 +234,15 @@ export default function ProfilePage({ currentUser, onUpdateUser, onLogout }: Pro
               <input
                 type="email"
                 value={email}
-                onChange={(event) => setEmail(event.target.value)}
+                onChange={(event) => {
+                  setEmail(event.target.value);
+                  clearApiField("email");
+                  clearApiField("form");
+                }}
                 className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-sky-500"
+                aria-invalid={Boolean(errors.email?.length)}
               />
+              <FieldMessage messages={errors.email} />
             </label>
           </div>
 
@@ -179,9 +252,15 @@ export default function ProfilePage({ currentUser, onUpdateUser, onLogout }: Pro
               <input
                 type="text"
                 value={firstName}
-                onChange={(event) => setFirstName(event.target.value)}
+                onChange={(event) => {
+                  setFirstName(event.target.value);
+                  clearApiField("firstName");
+                  clearApiField("form");
+                }}
                 className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-sky-500"
+                aria-invalid={Boolean(errors.firstName?.length)}
               />
+              <FieldMessage messages={errors.firstName} />
             </label>
 
             <label className="space-y-2 text-sm font-medium text-slate-700">
@@ -189,9 +268,15 @@ export default function ProfilePage({ currentUser, onUpdateUser, onLogout }: Pro
               <input
                 type="text"
                 value={lastName}
-                onChange={(event) => setLastName(event.target.value)}
+                onChange={(event) => {
+                  setLastName(event.target.value);
+                  clearApiField("lastName");
+                  clearApiField("form");
+                }}
                 className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-sky-500"
+                aria-invalid={Boolean(errors.lastName?.length)}
               />
+              <FieldMessage messages={errors.lastName} />
             </label>
           </div>
 
@@ -201,10 +286,16 @@ export default function ProfilePage({ currentUser, onUpdateUser, onLogout }: Pro
               <input
                 type="password"
                 value={currentPassword}
-                onChange={(event) => setCurrentPassword(event.target.value)}
+                onChange={(event) => {
+                  setCurrentPassword(event.target.value);
+                  clearApiField("currentPassword");
+                  clearApiField("form");
+                }}
                 className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-sky-500"
                 placeholder="Wpisz tylko przy zmianie hasła"
+                aria-invalid={Boolean(errors.currentPassword?.length)}
               />
+              <FieldMessage messages={errors.currentPassword} />
             </label>
 
             <label className="space-y-2 text-sm font-medium text-slate-700">
@@ -212,15 +303,25 @@ export default function ProfilePage({ currentUser, onUpdateUser, onLogout }: Pro
               <input
                 type="password"
                 value={newPassword}
-                onChange={(event) => setNewPassword(event.target.value)}
+                onChange={(event) => {
+                  setNewPassword(event.target.value);
+                  clearApiField("newPassword");
+                  clearApiField("form");
+                }}
                 className="w-full rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-sky-500"
                 placeholder="Co najmniej 8 znaków"
+                aria-invalid={Boolean(errors.newPassword?.length)}
               />
+              <FieldMessage messages={errors.newPassword} />
             </label>
           </div>
 
-          {error && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
-          {message && <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{message}</p>}
+          <FieldMessage messages={errors.form} />
+          {successMessage && (
+            <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              {successMessage}
+            </p>
+          )}
 
           <button
             type="submit"
@@ -264,7 +365,7 @@ export default function ProfilePage({ currentUser, onUpdateUser, onLogout }: Pro
                       {order.stan === "W_TRAKCIE" && (
                         <button
                           type="button"
-                          onClick={() => navigate("/profile")}
+                          onClick={() => navigate(`/payment/${order.id_transakcji}`)}
                           className="inline-flex items-center rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100"
                         >
                           Opłać
@@ -330,6 +431,22 @@ export default function ProfilePage({ currentUser, onUpdateUser, onLogout }: Pro
           </>
         )}
       </section>
+    </div>
+  );
+}
+
+function FieldMessage({ messages }: { messages?: string[] }) {
+  if (!messages || messages.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-2 rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+      <ul className="list-disc space-y-1 pl-5">
+        {messages.map((message) => (
+          <li key={message}>{message}</li>
+        ))}
+      </ul>
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { authenticate } from "../middleware/authenticate.js";
 import { HttpError } from "../errors/http-error.js";
 import { validateRequest } from "../validation/validate-request.js";
 import { addReviewSchema, productIdSchema, getProductsQuerySchema, getFeaturedProductsQuerySchema } from "../validation/product-schemas.js";
-import { getAllProducts, getProductById, getProductReviews, addProductReview, getFeaturedProducts } from "../services/products-service.js";
+import { getAllProducts, getProductById, getProductReviews, addProductReview, getFeaturedProducts, hasUserPurchasedProduct } from "../services/products-service.js";
 
 const router = Router();
 
@@ -41,13 +41,17 @@ router.get("/:id/reviews", async (req, res) => {
 
 router.post("/:id/reviews", authenticate, async (req, res) => {
   const { id } = validateRequest(productIdSchema, req.params);
+  const userId = req.authUser!.userId;
+
+  const purchased = await hasUserPurchasedProduct(id, userId);
+  if (!purchased) {
+    throw new HttpError(403, "You must purchase the product before leaving a review");
+  }
 
   const payload = validateRequest(addReviewSchema, req.body);
   
   const rating = Number(payload.ocena ?? payload.rating);
   const comment = (payload.komentarz ?? payload.comment ?? "") as string;
-
-  const userId = req.authUser!.userId;
 
   const review = await addProductReview(id, userId, rating, comment);
   res.status(201).json(review);

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { addToCart, fetchProductById, getCart, removeFromCart } from "../products/products.api";
 import { toast } from "react-toastify";
 import { createGuestOrder, createOrder, fetchLastAddress } from "../orders/orders.api";
+import { useNavigate } from "react-router-dom";
 
 export default function CartPage() {
 const [loading, setLoading] = useState(true);
@@ -11,6 +12,7 @@ const [city, setCity] = useState("");
 const [postalCode, setPostalCode] = useState("");
 const [street, setStreet] = useState("");
 const [houseNumber, setHouseNumber] = useState("");
+const navigate = useNavigate();
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const postalCodeRegex = /^[0-9]{2}-[0-9]{3}$/;
 const cityRegex = /^[\p{L}0-9\s.-]{2,}$/u;
@@ -144,9 +146,10 @@ const handleCheckout = async () => {
     }
     else {
         const token = localStorage.getItem("auth_token");
+        let order;
         if(token)
         {
-        await createOrder({
+        order = await createOrder({
             email,
             miasto: city,
             kod_pocztowy: postalCode,
@@ -162,7 +165,7 @@ const handleCheckout = async () => {
         ilosc: item.ilosc
         }));
 
-        await createGuestOrder({
+        order = await createGuestOrder({
         email: email,
         miasto: city,
         kod_pocztowy: postalCode,
@@ -172,6 +175,7 @@ const handleCheckout = async () => {
         });
         toast.success("Przechodzenie do płatności!");
         }
+        navigate(`/payment/${order.id_transakcji}`)
     }
 } catch (error) {
     console.error("Checkout failed:", error);
