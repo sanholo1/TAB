@@ -5,7 +5,6 @@ import type { GetAllProductsParams } from "../types/products.js";
 export const getAllProducts = async ({ search, category, min_price, max_price, price, limit }: GetAllProductsParams) => {
   const where: Prisma.PrzedmiotyWhereInput = {
     aktywny: true,
-    ilosc: { gt: 0 },
   };
 
   if (search) {
@@ -71,7 +70,6 @@ export const getFeaturedProducts = async (limit: number = 5) => {
   return prisma.przedmioty.findMany({
     where: {
       aktywny: true,
-      ilosc: { gt: 0 },
       cena_prom: { not: null }
     },
     include: { kategoria: true },

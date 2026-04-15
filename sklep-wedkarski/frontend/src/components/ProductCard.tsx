@@ -11,6 +11,7 @@ interface Props {
 }
 
 const ProductCard: React.FC<Props> = ({ product }) => {
+  const isOutOfStock = product.ilosc <= 0;
 
   const navigate = useNavigate();
   const handleCardClick = () => {
@@ -20,6 +21,11 @@ const ProductCard: React.FC<Props> = ({ product }) => {
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+
+    if (isOutOfStock) {
+      toast.error(`Produkt ${product.nazwa} jest obecnie niedostępny.`);
+      return;
+    }
     
     // Przerzucono logikę dodawania do koszyka z ProductDetailPage, aby obsłużyć zarówno użytkowników zalogowanych, jak i gości
     const token = localStorage.getItem("auth_token");
@@ -68,7 +74,7 @@ const ProductCard: React.FC<Props> = ({ product }) => {
   const hasPromotion = promoPrice !== null;
   const promotionalPrice = !hasPromotion || !Number.isFinite(promoPrice) ? null : `${promoPrice.toFixed(2)} zł`;
 
- return (
+  return (
     <div
       onClick={handleCardClick}
       className="group flex h-full flex-col cursor-pointer overflow-hidden rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4 shadow-sm transition hover:border-sky-300 hover:shadow-md"
@@ -99,6 +105,13 @@ const ProductCard: React.FC<Props> = ({ product }) => {
         <p className="mb-4 text-sm text-slate-600 line-clamp-2">
           {product.opis ?? "---"}
         </p>
+        <div className="mt-auto flex items-center gap-2">
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${isOutOfStock ? "bg-rose-100 text-rose-700" : "bg-emerald-100 text-emerald-700"}`}
+          >
+            {isOutOfStock ? "Brak" : `Dostępne: ${product.ilosc} szt.`}
+          </span>
+        </div>
       </div>
 
       <div className="mt-auto flex flex-col gap-2">
@@ -123,10 +136,11 @@ const ProductCard: React.FC<Props> = ({ product }) => {
         <button
             type="button"
             onClick={handleAddToCart}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-sky-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-sky-800 active:bg-sky-900"
+            disabled={isOutOfStock}
+            className={`inline-flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold text-white transition ${isOutOfStock ? "cursor-not-allowed bg-slate-400" : "bg-sky-700 hover:bg-sky-800 active:bg-sky-900"}`}
         >
           <ShoppingCart className="h-4 w-6" />
-          Dodaj do koszyka
+          {isOutOfStock ? "Brak" : "Dodaj do koszyka"}
         </button>
       </div>
     </div>
