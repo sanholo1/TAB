@@ -13,8 +13,8 @@ const [street, setStreet] = useState("");
 const [houseNumber, setHouseNumber] = useState("");
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const postalCodeRegex = /^[0-9]{2}-[0-9]{3}$/;
-const cityRegex = /^[a-zA-Z\s-]{2,}$/;
-const streetRegex = /^[a-zA-Z0-9\s.-]{2,}$/;
+const cityRegex = /^[\p{L}0-9\s.-]{2,}$/u;
+const streetRegex = /^[\p{L}0-9\s.-]{2,}$/u;
 
 useEffect(() => {
 const loadCartItems = async () => {
@@ -193,6 +193,19 @@ return (
         <div>     
                 <p> Podsumowanie ceny: {calculateTotal.toFixed(2)} zł</p>
         </div>
+            <article className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex-1">
+                      <p className="text-xs uppercase tracking-[0.3em] text-sky-700">Zamówienie #costam</p>
+                      <h3 className="mt-2 text-xl font-semibold text-slate-900">Costam zł</h3>
+                      <p className="mt-1 text-sm text-slate-600">
+                        Status: costam •
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 sm:flex-shrink-0">
+                    </div>
+                </div>
+            </article>
         <div className="text-2xl font-bold mb-4 mt-10">Dane dostawy</div>
         <div className="flex flex-col gap-4 mb-6">
             <input type="text" placeholder="Adres e-mail" className="border border-gray-300 rounded-md p-2 mt-4 w-full max-w-sm" maxLength={30} value={email} onChange={(e) => setEmail(e.target.value)} />
