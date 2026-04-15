@@ -128,7 +128,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout, search, setSearch, onSe
               </NavLink>
             </>
           )}
-        <NavLink to="/cart" className="text-lg tracking-tight text-black pl-4">
+        <NavLink to="/cart" className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900">
           Koszyk
         </NavLink>
         </div>
