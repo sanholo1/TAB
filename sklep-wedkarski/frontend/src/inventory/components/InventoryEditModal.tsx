@@ -3,6 +3,7 @@ import { fetchCategories } from "../../products/products.api";
 import type { Category } from "../../products/products.types";
 import { setInventoryProductVisibility, updateInventoryProduct, uploadInventoryImage } from "../inventory.api";
 import type { InventoryProduct } from "../inventory.types";
+import { toast } from "react-toastify";
 
 type Props = {
   product: InventoryProduct | null;
@@ -42,23 +43,20 @@ export default function InventoryEditModal({ product, onClose, onSaved, canManag
   const [categories, setCategories] = useState<Category[]>([]);
   const [form, setForm] = useState<EditFormState | null>(null);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
 
   useEffect(() => {
-    fetchCategories().then(setCategories).catch((err) => setError(parseError(err, "Nie udało się pobrać kategorii.")));
+    fetchCategories().then(setCategories).catch((err) => toast.error(parseError(err, "Nie udało się pobrać kategorii.")));
   }, []);
 
   useEffect(() => {
     if (!product) {
       setForm(null);
-      setError(null);
       setFile(null);
       return;
     }
 
     setForm(buildEditForm(product));
-    setError(null);
     setFile(null);
   }, [product]);
 
@@ -76,27 +74,26 @@ export default function InventoryEditModal({ product, onClose, onSaved, canManag
     const promotionPrice = form.cena_prom.trim() === "" ? null : Number(form.cena_prom);
 
     if (!Number.isFinite(categoryId) || categoryId <= 0) {
-      setError("Wybierz kategorię dla produktu.");
+      toast.error("Wybierz kategorię dla produktu.");
       return;
     }
 
     if (!Number.isFinite(salePrice) || !Number.isFinite(purchasePrice) || salePrice <= 0 || purchasePrice <= 0) {
-      setError("Cena sprzedaży i zakupu musi być większa od 0.");
+      toast.error("Cena sprzedaży i zakupu musi być większa od 0.");
       return;
     }
 
     if (!Number.isFinite(quantity) || quantity < 0) {
-      setError("Ilość nie może być ujemna.");
+      toast.error("Ilość nie może być ujemna.");
       return;
     }
 
     if (promotionPrice !== null && (!Number.isFinite(promotionPrice) || promotionPrice <= 0)) {
-      setError("Cena promocyjna musi być większa od 0.");
+      toast.error("Cena promocyjna musi być większa od 0.");
       return;
     }
 
     setBusy(true);
-    setError(null);
 
     try {
       let imageUrl = form.zdjecie_url.trim() ? form.zdjecie_url.trim() : null;
@@ -125,7 +122,7 @@ export default function InventoryEditModal({ product, onClose, onSaved, canManag
       window.dispatchEvent(new Event("inventory:changed"));
       onClose();
     } catch (err) {
-      setError(parseError(err, "Nie udało się zapisać zmian produktu."));
+      toast.error(parseError(err, "Nie udało się zapisać zmian produktu."));
     } finally {
       setBusy(false);
     }
@@ -145,8 +142,6 @@ export default function InventoryEditModal({ product, onClose, onSaved, canManag
             Zamknij
           </button>
         </div>
-
-        {error && <p className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
         <form className="grid gap-4" onSubmit={handleSubmit}>
           <div className="grid gap-4 sm:grid-cols-2">

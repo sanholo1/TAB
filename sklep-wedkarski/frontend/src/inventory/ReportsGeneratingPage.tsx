@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { fetchCategories } from "../products/products.api";
 import type { Category } from "../products/products.types";
+import { toast } from "react-toastify";
 
 const BASE_URL = "http://localhost:3000";
 const SEED_DATE_FROM = "2026-04-01";
@@ -72,7 +73,6 @@ const ReportsGenerating = () => {
 
   const [rawData, setRawData] = useState<ReportsResponse>({ sales: [], reviews: [] });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCategories()
@@ -89,9 +89,8 @@ const ReportsGenerating = () => {
     setValue(Math.max(0, Math.min(5, parsed)));
   };
 
-  const generate = async () => {
+  const generate = async (): Promise<boolean> => {
     setLoading(true);
-    setError(null);
 
     try {
       const params = new URLSearchParams();
@@ -107,8 +106,11 @@ const ReportsGenerating = () => {
 
       const payload = (await response.json()) as ReportsResponse;
       setRawData(payload);
+      toast.success("Raport sprzedaży wygenerowany.");
+      return true;
     } catch (fetchError) {
-      setError(fetchError instanceof Error ? fetchError.message : "Nie udało się pobrać raportów.");
+      toast.error(fetchError instanceof Error ? fetchError.message : "Nie udało się pobrać raportów.");
+      return false;
     } finally {
       setLoading(false);
     }
@@ -121,8 +123,10 @@ const ReportsGenerating = () => {
   };
 
   const generateSalesReport = async () => {
-    await generate();
-    document.getElementById("raport-sprzedazy")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const generated = await generate();
+    if (generated) {
+      document.getElementById("raport-sprzedazy")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   };
 
   useEffect(() => {
@@ -354,7 +358,6 @@ const ReportsGenerating = () => {
           </button>
         </div>
 
-        {error && <p className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
       </section>
 
       <section id="raport-sprzedazy" className="scroll-mt-24 rounded-[2rem] border border-slate-200 bg-white/90 p-6 shadow-xl shadow-slate-300/20">

@@ -100,6 +100,17 @@ export default function InventoryTable({
                         step={1}
                         value={stockDrafts[product.id_przedmiotu] ?? String(product.ilosc)}
                         onChange={(event) => onStockDraftChange(product.id_przedmiotu, event.target.value)}
+                        onBlur={() => {
+                          if (!busy) {
+                            onSaveStock(product);
+                          }
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            event.currentTarget.blur();
+                          }
+                        }}
                         className="w-24 rounded-xl border border-slate-300 bg-white px-2 py-2 text-xs text-slate-900 outline-none focus:border-sky-500"
                       />
                     ) : (
@@ -132,17 +143,6 @@ export default function InventoryTable({
                           className="rounded-xl border border-sky-200 bg-sky-100 px-3 py-2 text-xs font-semibold text-sky-800 transition hover:bg-sky-200 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           Edytuj
-                        </button>
-                      )}
-
-                      {canManageStock && (
-                        <button
-                          type="button"
-                          onClick={() => onSaveStock(product)}
-                          disabled={busy}
-                          className="rounded-xl border border-emerald-200 bg-emerald-100 px-3 py-2 text-xs font-semibold text-emerald-800 transition hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          Zapisz stan
                         </button>
                       )}
 

@@ -3,6 +3,7 @@ import { fetchCategories } from "../../products/products.api";
 import type { Category } from "../../products/products.types";
 import { createInventoryProduct, uploadInventoryImage } from "../inventory.api";
 import type { InventoryProductPayload } from "../inventory.types";
+import { toast } from "react-toastify";
 
 type Props = {
   onCreated: () => void;
@@ -37,21 +38,10 @@ export default function InventoryCreateForm({ onCreated }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [form, setForm] = useState<CreateFormState>(INITIAL_FORM);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
 
   useEffect(() => {
-    if (!notice) {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => setNotice(null), 4000);
-    return () => window.clearTimeout(timeoutId);
-  }, [notice]);
-
-  useEffect(() => {
-    fetchCategories().then(setCategories).catch((err) => setError(parseError(err, "Nie udało się pobrać kategorii.")));
+    fetchCategories().then(setCategories).catch((err) => toast.error(parseError(err, "Nie udało się pobrać kategorii.")));
   }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -64,28 +54,26 @@ export default function InventoryCreateForm({ onCreated }: Props) {
     const promotionPrice = form.cena_prom.trim() === "" ? null : Number(form.cena_prom);
 
     if (!Number.isFinite(categoryId) || categoryId <= 0) {
-      setError("Wybierz kategorię dla nowej oferty.");
+      toast.error("Wybierz kategorię dla nowej oferty.");
       return;
     }
 
     if (!Number.isFinite(salePrice) || !Number.isFinite(purchasePrice) || salePrice <= 0 || purchasePrice <= 0) {
-      setError("Cena sprzedaży i zakupu musi być większa od 0.");
+      toast.error("Cena sprzedaży i zakupu musi być większa od 0.");
       return;
     }
 
     if (!Number.isFinite(quantity) || quantity < 0) {
-      setError("Ilość nie może być ujemna.");
+      toast.error("Ilość nie może być ujemna.");
       return;
     }
 
     if (promotionPrice !== null && (!Number.isFinite(promotionPrice) || promotionPrice <= 0)) {
-      setError("Cena promocyjna musi być większa od 0.");
+      toast.error("Cena promocyjna musi być większa od 0.");
       return;
     }
 
     setBusy(true);
-    setError(null);
-    setNotice(null);
 
     try {
       let imageUrl = form.zdjecie_url.trim() ? form.zdjecie_url.trim() : null;
@@ -109,11 +97,11 @@ export default function InventoryCreateForm({ onCreated }: Props) {
       await createInventoryProduct(payload);
       setForm(INITIAL_FORM);
       setFile(null);
-      setNotice("Nowa oferta została opublikowana.");
+      toast.success("Nowa oferta została opublikowana.");
       onCreated();
       window.dispatchEvent(new Event("inventory:changed"));
     } catch (err) {
-      setError(parseError(err, "Nie udało się dodać oferty."));
+      toast.error(parseError(err, "Nie udało się dodać oferty."));
     } finally {
       setBusy(false);
     }
@@ -125,10 +113,6 @@ export default function InventoryCreateForm({ onCreated }: Props) {
         <h2 className="text-2xl font-semibold text-slate-900">Utwórz ofertę sprzedaży</h2>
         <p className="mt-2 text-slate-600">Sprzedawca i administrator mogą tworzyć oraz publikować oferty.</p>
       </div>
-
-      {notice && <p className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{notice}</p>}
-
-      {error && <p className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
       <form className="grid gap-4" onSubmit={handleSubmit}>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -190,7 +174,7 @@ export default function InventoryCreateForm({ onCreated }: Props) {
           <button type="submit" disabled={busy} className="rounded-2xl bg-sky-700 px-6 py-3 text-sm font-semibold text-white transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:opacity-60">
             {busy ? "Dodawanie..." : "Dodaj produkt"}
           </button>
-          <button type="button" onClick={() => { setForm(INITIAL_FORM); setFile(null); setError(null); }} disabled={busy} className="rounded-2xl border border-slate-300 bg-slate-100 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60">
+          <button type="button" onClick={() => { setForm(INITIAL_FORM); setFile(null); }} disabled={busy} className="rounded-2xl border border-slate-300 bg-slate-100 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-60">
             Wyczyść formularz
           </button>
         </div>
