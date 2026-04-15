@@ -98,6 +98,8 @@ export default function ProductDetailPage() {
     }
     try {
         await addProductReview(product.id_przedmiotu, {rating: Number(rating), comment: newReview});
+      const updatedReviews = await fetchProductReviews(product.id_przedmiotu);
+      setReviews(updatedReviews);
         toast.success("Twoja opinia została dodana!");
         setNewReview("");
         setRating("5");
