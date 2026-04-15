@@ -5,6 +5,11 @@ const BASE_URL = "http://localhost:3000";
 
 const getToken = () => localStorage.getItem("auth_token");
 
+type ApiError = Error & {
+  status?: number;
+  details?: string[];
+};
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers = {
     "Content-Type": "application/json",
@@ -21,7 +26,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   if (!response.ok) {
     const message = payload?.message || "Błąd sieci";
-    throw new Error(message);
+    const error = new Error(message) as ApiError;
+    error.status = response.status;
+    if (Array.isArray(payload?.details)) {
+      error.details = payload.details;
+    }
+    throw error;
   }
 
   return payload as T;

@@ -40,10 +40,23 @@ const AppContent: React.FC = () => {
     return params.get("search") || "";
   });
 
+  const persistUser = (nextUser: User | null) => {
+    setUser(nextUser);
+
+    if (nextUser) {
+      localStorage.setItem("auth_user", JSON.stringify(nextUser));
+    } else {
+      localStorage.removeItem("auth_user");
+    }
+  };
+
   const handleLogin = (user: User, token: string) => {
     localStorage.setItem("auth_token", token);
-    localStorage.setItem("auth_user", JSON.stringify(user));
-    setUser(user);
+    persistUser(user);
+  };
+
+  const handleUpdateUser = (nextUser: User) => {
+    persistUser(nextUser);
   };
 
   const handleLogout = () => {
@@ -93,7 +106,7 @@ const AppContent: React.FC = () => {
             element={
               <ProfilePage 
                 currentUser={user} 
-                onUpdateUser={setUser} 
+                onUpdateUser={handleUpdateUser} 
                 onLogout={handleLogout} 
               />
             } 
