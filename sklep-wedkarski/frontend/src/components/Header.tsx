@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { getCart } from "../products/products.api";
 import type { User } from "../auth/auth.types";
@@ -61,11 +61,13 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout, search, setSearch, onSe
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-slate-50/90 backdrop-blur-xl shadow-sm">
       <div className="mx-auto flex flex-wrap items-center gap-4 px-4 py-4 max-w-7xl">
         
-        <div className="flex items-center gap-3">
-          <NavLink to="/" className="text-xl font-semibold tracking-tight text-sky-900">
-            Sklep Wędkarski
+          <NavLink to="/" className="flex items-center">
+            <img 
+              src="/logo.png" 
+              alt="Gruba Ryba - Sklep Wędkarski" 
+              className="h-24 w-auto object-contain transition-transform hover:scale-105" 
+            />
           </NavLink>
-        </div>
 
         <nav className="flex flex-wrap items-center gap-2">
           <NavLink
