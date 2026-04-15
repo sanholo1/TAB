@@ -36,6 +36,15 @@ const PaymentGateway: React.FC = () => {
           return;
         }
         setOrder(data);
+        // synchro czasu
+        const diff = Math.floor((Date.now() - new Date(data.data).getTime()) / 1000);
+        const remaining = Math.max(0, 600 - diff);
+        setTimeLeft(remaining);
+
+        if (remaining <= 0) {
+          toast.error("Transakcja wygasła", { toastId: "timeout-error" });
+          navigate("/profile");
+        }
       })
       .catch(() => {
         toast.error("Błąd połączenia z bazą zamówień.", { toastId: "fetch-error" });
