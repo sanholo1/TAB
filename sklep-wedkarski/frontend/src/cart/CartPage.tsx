@@ -186,44 +186,140 @@ const handleCheckout = async () => {
 if (loading) return <div className="p-4">Ładowanie danych koszyka...</div>;
   
 return (
-    <div className="p-4 rounded-lg border border-gray-300 min-h-screen bg-white shadow-xl">
-        <h1 className="text-2xl font-bold mb-4">Twój koszyk</h1>
+    <div className="p-4 rounded-lg border border-gray-300 h-auto bg-white shadow-xl">
+        <h1 className="text-2xl font-bold">Twój koszyk</h1>
             {cartItems.length === 0 ? (
-                <p>Tu będzie lista produktów w koszyku oraz możliwość przejścia do płatności.</p>
-                ) : (cartItems.map(item => <div key={item.id_przedmiotu}>Id przedmiotu: {item.id_przedmiotu}, Ilość: {item.ilosc}, Stan Magazynowy: {item.stan_magazynowy}, Nazwa: {item.nazwa}, Kategoria: {item.kategoria}, Cena sprzedaży: {item.cena_sprzedazy}, Cena promocji: {item.cena_prom} | <button onClick={() => handleRemove(item.id_przedmiotu)}>Usuń</button> | <button onClick={() => handleRemoveOne(item.id_przedmiotu)}>Usuń jedną </button> 
-                    <p className="text-red-500 text-sm"> {invalidProductIDs.includes(item.id_przedmiotu) ? "Przekracza stan magazynowy!" : ""}</p>
-                </div>))
-            }
-        <div>     
-                <p> Podsumowanie ceny: {calculateTotal.toFixed(2)} zł</p>
-        </div>
-            <article className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex-1">
-                      <p className="text-xs uppercase tracking-[0.3em] text-sky-700">Zamówienie #costam</p>
-                      <h3 className="mt-2 text-xl font-semibold text-slate-900">Costam zł</h3>
-                      <p className="mt-1 text-sm text-slate-600">
-                        Status: costam •
-                      </p>
+                <div className="pt-2 text-xl text-slate-900">Brak produktów w koszyku!</div>
+                ) : (cartItems.map(item => 
+                <article className="rounded-3xl border border-slate-200 bg-slate-50 p-4 mt-4 mb-4">
+                    <div className="flex flex-row items-center justify-centerpb-1 gap-8">
+                    <div className="flex flex-col w-70">
+                      <div className="text-xs uppercase tracking-[0.3em] text-sky-700">Kategoria: {item.kategoria}</div>
+                      <h3 className=" truncate mt-2 text-xl font-semibold text-slate-900">{item.nazwa}</h3>
                     </div>
-                    <div className="flex items-center gap-2 sm:flex-shrink-0">
+                    <div className="space-y-4 w-55">
+                        {item.cena_prom ? (
+                        <div className="flex items-baseline gap-2 text-lg font-semibold">
+                            Cena:
+                            <div className="text-xl font-bold text-rose-700">
+                                {item.cena_prom} zł
+                            </div>
+                            <div className="text-lg text-slate-900 line-through">
+                                {item.cena_sprzedazy} zł
+                            </div>
+                        </div>
+                        ) : (
+                            <div className="flex items-baseline gap-2 text-lg font-semibold">
+                            Cena: 
+                                <div className="text-xl font-bold text-rose-700">
+                                    {item.cena_sprzedazy} zł
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex-col text-lg font-semibold">
+                        Ilość w koszyku: <strong className ="text-green-600">
+                        {item.ilosc} szt.
+                    </strong>
+                    </div>
+                    <div className="flex-col text-lg font-semibold">
+                        Dostępność: <strong className={item.stan_magazynowy > 0 ? "text-green-600" : "text-red-600"}>
+                        {item.stan_magazynowy > 0 ? `${item.stan_magazynowy} szt.` : "Brak"}
+                    </strong>
+                    </div>
+                    <div className="flex ml-auto gap-2">
+                        <button onClick={() => handleRemoveOne(item.id_przedmiotu)} className="bg-rose-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-rose-700 transition">
+                            Usuń jedną
+                        </button>
+                        <button onClick={() => handleRemove(item.id_przedmiotu)} className="bg-rose-700 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-rose-900 transition">
+                            Usuń
+                        </button>
                     </div>
                 </div>
-            </article>
-        <div className="text-2xl font-bold mb-4 mt-10">Dane dostawy</div>
-        <div className="flex flex-col gap-4 mb-6">
-            <input type="text" placeholder="Adres e-mail" className="border border-gray-300 rounded-md p-2 mt-4 w-full max-w-sm" maxLength={30} value={email} onChange={(e) => setEmail(e.target.value)} />
-            <input type="text" placeholder="Miasto" className="border border-gray-300 rounded-md p-2 mt-4 w-full max-w-sm" maxLength={30} value={city} onChange={(e) => setCity(e.target.value)} />
-            <input type="text" placeholder="Kod pocztowy" className="border border-gray-300 rounded-md p-2 mt-4 w-full max-w-sm" maxLength={10} value={postalCode} onChange={(e) => setPostalCode(e.target.value)} />
-            <input type="text" placeholder="Ulica" className="border border-gray-300 rounded-md p-2 mt-4 w-full max-w-sm" maxLength={30} value={street} onChange={(e) => setStreet(e.target.value)} />
-            <input type="text" placeholder="Numer domu" className="border border-gray-300 rounded-md p-2 mt-4 w-full max-w-sm" maxLength={10} value={houseNumber} onChange={(e) => setHouseNumber(e.target.value)} />
-        </div>
-        <button onClick={() => handleCheckout()} className="bg-sky-700 p-2.5 rounded-full text-white mt-4 disabled:bg-gray-500" disabled={cartItems.length === 0 || invalidProductIDs.length > 0}>
-                Przejdź do płatności
-        </button>
-            {invalidProductIDs.length > 0 && (
-                <p className="text-red-500 text-sm mt-2">Niektóre produkty przekraczają stan magazynowy.</p>
-            )}
+                <div className="text-red-500 text-sm"> 
+                    {invalidProductIDs.includes(item.id_przedmiotu) ? "Przekracza stan magazynowy!" : ""}
+                </div>
+        </article>
+        ))
+        }
+
+<div className="flex flex-col lg:flex-row gap-12 items-start mt-8 justify-center pb-2 pl-1">
+  <div className="flex-1 w-full">
+    <h2 className="text-2xl font-bold mb-6 text-slate-900 pb-4">Dane dostawy</h2>
+    <div className="flex flex-col gap-4">
+      <input 
+        type="text" 
+        placeholder="Adres e-mail" 
+        className="border border-slate-200 rounded-xl p-3 w-full max-w-md focus:ring-2 focus:ring-sky-500 outline-none transition" 
+        maxLength={30} 
+        value={email} 
+        onChange={(e) => setEmail(e.target.value)} 
+      />
+      <div className="flex gap-4 max-w-md">
+        <input 
+          type="text" 
+          placeholder="Miasto" 
+          className="border border-slate-200 rounded-xl p-3 flex-1 focus:ring-2 focus:ring-sky-500 outline-none transition" 
+          maxLength={30} 
+          value={city} 
+          onChange={(e) => setCity(e.target.value)} 
+        />
+        <input 
+          type="text" 
+          placeholder="Kod" 
+          className="border border-slate-200 rounded-xl p-3 w-32 focus:ring-2 focus:ring-sky-500 outline-none transition" 
+          maxLength={10} 
+          value={postalCode} 
+          onChange={(e) => setPostalCode(e.target.value)} 
+        />
+      </div>
+      <input 
+        type="text" 
+        placeholder="Ulica" 
+        className="border border-slate-200 rounded-xl p-3 w-full max-w-md focus:ring-2 focus:ring-sky-500 outline-none transition" 
+        maxLength={30} 
+        value={street} 
+        onChange={(e) => setStreet(e.target.value)} 
+      />
+      <input 
+        type="text" 
+        placeholder="Numer domu" 
+        className="border border-slate-200 rounded-xl p-3 w-full max-w-md focus:ring-2 focus:ring-sky-500 outline-none transition" 
+        maxLength={10} 
+        value={houseNumber} 
+        onChange={(e) => setHouseNumber(e.target.value)} 
+      />
     </div>
-  );
-}
+  </div>
+
+  <div className="w-full top-8 mt-26 pr-1">
+    <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
+      <h3 className="text-slate-500 uppercase tracking-wider text-xs font-bold mb-4">Twoje zamówienie</h3>
+      
+      <div className="flex justify-between items-end mb-6">
+        <span className="text-slate-900 font-medium">Do zapłaty:</span>
+        <span className="text-3xl font-black text-rose-700">
+          {calculateTotal.toFixed(2)} zł
+        </span>
+      </div>
+
+      <button 
+        onClick={() => handleCheckout()} 
+        disabled={cartItems.length === 0 || invalidProductIDs.length > 0}
+        className="w-full bg-sky-700 hover:bg-sky-800 text-white font-bold py-4 rounded-2xl transition-all disabled:bg-slate-300 disabled:cursor-not-allowed shadow-lg shadow-sky-900/20"
+      >
+        Przejdź do płatności
+      </button>
+
+      {invalidProductIDs.length > 0 && (
+        <div className="mt-4 p-3 bg-rose-50 rounded-xl border border-rose-100">
+          <p className="text-rose-600 text-sm font-medium leading-tight">
+            Niektóre produkty przekraczają stan magazynowy.
+          </p>
+        </div>
+      )}
+    </div>
+  </div>
+</div>
+</div>
+)};
