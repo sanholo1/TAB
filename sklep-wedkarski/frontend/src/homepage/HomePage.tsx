@@ -91,7 +91,7 @@ const HomePage: React.FC = () => {
               onClick={() => goToCategory(cat.id_kategorii)}
               className="group flex h-24 items-center justify-center rounded-[1.5rem] border border-slate-200 bg-white p-4 text-lg font-semibold text-slate-700 shadow-sm transition hover:border-sky-300 hover:text-sky-700 hover:shadow-xl"
             >
-              <p className="text-xl text-slate-800 font-semibold">
+              <p className="text-lg text-slate-800 font-semibold">
                 {cat.nazwa}
               </p>
             </button>

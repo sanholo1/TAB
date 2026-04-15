@@ -13,6 +13,7 @@ import ReportsGenerating from "./inventory/ReportsGeneratingPage";
 import CartPage from "./cart/CartPage";
 import { ToastContainer } from "react-toastify"; //Dodany import dla ToastContainer do powiadomień
 import 'react-toastify/dist/ReactToastify.css';
+import PaymentGateway from "./orders/payment/PaymentGateway";
 
 const getStoredUser = (): User | null => {
   const savedUser = localStorage.getItem("auth_user");
@@ -84,6 +85,7 @@ const AppContent: React.FC = () => {
             path="/inventory"
             element={<InventoryPage currentUser={user} />}
           />
+          <Route path="/payment/:id" element={<PaymentGateway />}/>
           <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
           <Route path="/register" element={<RegisterPage onLogin={handleLogin} />} />
           <Route 
