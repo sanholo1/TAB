@@ -94,9 +94,12 @@ export default function ProductDetailPage() {
       <div className="flex flex-col md:flex-row gap-6 p-4">
         
         {/* Lewa: Zdjęcie */}
-        <div className="w-full md:w-1/2 bg-gray-200 h-64 md:h-auto flex items-center justify-center text-gray-500 border border-gray-300">
+        <div className="w-full md:w-1/2 bg-gray-200 h-64 md:h-auto flex items-center justify-center text-gray-500 border border-gray-300 relative overflow-hidden">
           {imageUrl ? (
-            <img src={imageUrl} alt={product.nazwa} className="h-full w-full object-cover" />
+            <div>
+            <img src={imageUrl} alt={product.nazwa} className="h-full w-full object-cover absolute inset-0 blur-2xl opacity-50 scale-110 object-center" />
+            <img src={imageUrl} alt={product.nazwa} className="h-100 w-200 object-contain relative drop-shadow-2xl object-center" />
+            </div>
           ) : (
             "[Miejsce na główne zdjęcie produktu]"
           )}

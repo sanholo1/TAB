@@ -102,7 +102,13 @@ const AppContent: React.FC = () => {
           <Route path="/cart" element={<CartPage />} />
         </Routes>
       </main>
-      <ToastContainer style={{ marginTop: "90px" }} position="top-right" autoClose={3000} theme="colored" limit={3} />
+      <ToastContainer
+        style={{ marginTop: "90px" }}
+        position="top-right"
+        autoClose={3000}
+        theme="light"
+        limit={3}
+      />
     </div>
   );
 };
