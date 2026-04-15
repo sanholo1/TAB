@@ -66,6 +66,21 @@ export const addProductReview = async (productId: number, userId: number, rating
   });
 };
 
+export const hasUserPurchasedProduct = async (productId: number, userId: number) => {
+  const purchase = await prisma.transakcja.findFirst({
+    where: {
+      id_uzytkownika: userId,
+      stan: "ZREALIZOWANE",
+      przedmioty: {
+        some: {
+          id_przedmiotu: productId,
+        },
+      },
+    },
+  });
+  return !!purchase;
+};
+
 export const getFeaturedProducts = async (limit: number = 5) => {
   return prisma.przedmioty.findMany({
     where: {
