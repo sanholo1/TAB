@@ -6,8 +6,7 @@ const router = Router();
 router.get("/", async (req, res) => {
   const { dateFrom, dateTo, category } = req.query;
   
-  // Budujemy warunki SPECZYFICZNIE dla raportu zysków
-  const salesConditions: any[] = [{ transakcja: { stan: "Z" } }]; // Dodajemy filtr stanu Z
+  const salesConditions: any[] = [{ transakcja: { stan: "ZREALIZOWANE" } }];
 
   if (dateFrom || dateTo) {
     const dataFilter: any = {};
@@ -27,9 +26,9 @@ router.get("/", async (req, res) => {
 
   try {
     const salesData = await prisma.przedmioty_transakcji.findMany({
-      where: { AND: salesConditions }, // Używamy salesConditions zamiast ogólnego conditions
+      where: { AND: salesConditions },
       include: {
-        transakcja: true,
+        transakcja: { select: { data: true } },
         przedmiot: { include: { kategoria: true } },
       },
     });

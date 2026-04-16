@@ -120,12 +120,6 @@ if [ -n "$FIRST_PRODUCT_ID" ] && [ "$FIRST_PRODUCT_ID" != "$BODY" ]; then
   assert_status "200" "$STATUS" "GET /products/$FIRST_PRODUCT_ID/reviews"
   printf '%s\n' "$BODY" | grep -q '\[' || { echo "[FAIL] /reviews should return array"; exit 1; }
   echo "[OK] /products/:id/reviews returns array"
-
-  request "POST" "/products/$FIRST_PRODUCT_ID/reviews" "{\"ocena\":10,\"komentarz\":\"za wysokie\"}" "$TOKEN"
-  assert_status "400" "$STATUS" "POST /products/:id/reviews invalid rating"
-
-  request "POST" "/products/$FIRST_PRODUCT_ID/reviews" "{\"ocena\":4,\"komentarz\":\"dobry produkt\"}" "$TOKEN"
-  assert_status "201" "$STATUS" "POST /products/:id/reviews valid"
 fi
 
 # ── Cart ───────────────────────────────────────────────────────────────────────
@@ -173,6 +167,33 @@ if [ -n "$FIRST_PRODUCT_ID" ] && [ "$FIRST_PRODUCT_ID" != "$BODY" ]; then
   echo "[OK] /orders returns created order"
 
   CREATED_ORDER_ID="$(printf '%s\n' "$BODY" | sed -nE 's/.*"id_transakcji":([0-9]+).*/\1/p' | head -1)"
+
+ 
+  request "GET" "/orders/$CREATED_ORDER_ID" "" "$TOKEN"
+  assert_status "200" "$STATUS" "GET /orders/:id"
+  printf '%s\n' "$BODY" | grep -q "\"id_transakcji\":$CREATED_ORDER_ID" || { echo "[FAIL] order id mismatch"; exit 1; }
+  echo "[OK] /orders/:id returns correct order"
+
+
+  request "PATCH" "/orders/$CREATED_ORDER_ID/status" "{\"stan\":\"ZREALIZOWANE\"}" "$TOKEN"
+  assert_status "200" "$STATUS" "PATCH /orders/:id/status"
+  printf '%s\n' "$BODY" | grep -q "\"stan\":\"ZREALIZOWANE\"" || { echo "[FAIL] order status update failed"; exit 1; }
+  echo "[OK] /orders/:id/status updated successfully"
+
+ 
+  echo "--- Testing reviews after purchase ---"
+  request "POST" "/products/$FIRST_PRODUCT_ID/reviews" "{\"ocena\":10,\"komentarz\":\"za wysokie\"}" "$TOKEN"
+  assert_status "400" "$STATUS" "POST /products/:id/reviews invalid rating"
+
+  request "POST" "/products/$FIRST_PRODUCT_ID/reviews" "{\"ocena\":4,\"komentarz\":\"dobry produkt\"}" "$TOKEN"
+  assert_status "201" "$STATUS" "POST /products/:id/reviews valid"
+  echo "--- Reviews tested successfully ---"
+
+  
+  request "GET" "/orders/last-address" "" "$TOKEN"
+  assert_status "200" "$STATUS" "GET /orders/last-address"
+  printf '%s\n' "$BODY" | grep -q '"address":' || { echo "[FAIL] /orders/last-address failed"; exit 1; }
+  echo "[OK] /orders/last-address returns address"
 
   request "GET" "/cart" "" "$TOKEN"
   assert_status "200" "$STATUS" "GET /cart after order"

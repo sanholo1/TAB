@@ -15,7 +15,6 @@ import { validateRequest } from "../validation/validate-request.js";
 
 const router = Router();
 
-
 router.post("/guest", async (req, res) => {
   const payload = validateRequest(createGuestOrderSchema, req.body);
   const order = await createGuestOrder(payload);
@@ -23,13 +22,18 @@ router.post("/guest", async (req, res) => {
 });
 
 
+router.get("/last-address", authenticate, async (req, res) => {
+  const userId = req.authUser!.userId;
+  const address = await getLastUserAddress(userId);
+  res.json({ address });
+});
+
 router.get("/:id", async (req, res) => {
   const id = Number(req.params.id);
   if (isNaN(id)) throw new HttpError(400, "Invalid order ID");
   const order = await getOrderById(id);
   res.json(order);
 });
-
 
 router.patch("/:id/status", async (req, res) => {
   const id = Number(req.params.id);
@@ -40,9 +44,7 @@ router.patch("/:id/status", async (req, res) => {
   res.json(order);
 });
 
-
 router.use(authenticate);
-
 
 router.get("/", async (req, res) => {
   const userId = req.authUser!.userId;
@@ -50,19 +52,11 @@ router.get("/", async (req, res) => {
   res.json(orders);
 });
 
-
 router.post("/", async (req, res) => {
   const userId = req.authUser!.userId;
   const payload = validateRequest(createOrderSchema, req.body);
   const order = await createOrderFromCart(userId, payload);
   res.status(201).json(order);
-});
-
-
-router.get("/last-address", async (req, res) => {
-  const userId = req.authUser!.userId;
-  const address = await getLastUserAddress(userId);
-  res.json({ address });
 });
 
 export default router;

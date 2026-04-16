@@ -3,7 +3,7 @@ import { HttpError } from "../errors/http-error.js";
 import prisma from "../prisma/prisma.js";
 import type { CreateGuestOrderSchema, CreateOrderSchema } from "../validation/order-schemas.js";
 
-const defaultOrderStatus = "zlozone";
+const defaultOrderStatus = "W_TRAKCIE";
 const guestAccountEmail = "gosc@sklep.pl";
 
 type OrderProductSnapshot = {
@@ -261,11 +261,33 @@ export const createGuestOrder = async (payload: CreateGuestOrderSchema) => {
 export const getOrderById = async (orderId: number) => {
   const order = await prisma.transakcja.findUnique({
     where: { id_transakcji: orderId },
-    include: orderInclude,
+    include: { ...orderInclude, przedmioty: true },
   });
 
-  if (!order) {
-    throw new HttpError(404, "Order not found");
+  if (!order) throw new HttpError(404, "Order not found");
+
+  const isExpired = Date.now() - new Date(order.data).getTime() > 10 * 60 * 1000;
+
+  if (order.stan === "W_TRAKCIE" && isExpired) {
+    return prisma.$transaction(async (tx) => {
+      for (const item of order.przedmioty) {
+        await tx.przedmioty.update({
+          where: { id_przedmiotu: item.id_przedmiotu },
+          data: { ilosc: { increment: item.liczba } },
+        });
+      }
+      return tx.transakcja.update({
+        where: { id_transakcji: orderId },
+        data: { stan: "ANULOWANE" },
+        include: orderInclude,
+      });
+    });
+  } else if (order.stan === "W_TRAKCIE") {
+    return prisma.transakcja.update({
+      where: { id_transakcji: orderId },
+      data: { data: new Date() },
+      include: orderInclude,
+    });
   }
 
   return order;

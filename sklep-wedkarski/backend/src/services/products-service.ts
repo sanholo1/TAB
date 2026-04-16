@@ -5,7 +5,6 @@ import type { GetAllProductsParams } from "../types/products.js";
 export const getAllProducts = async ({ search, category, min_price, max_price, price, limit }: GetAllProductsParams) => {
   const where: Prisma.PrzedmiotyWhereInput = {
     aktywny: true,
-    ilosc: { gt: 0 },
   };
 
   if (search) {
@@ -67,11 +66,25 @@ export const addProductReview = async (productId: number, userId: number, rating
   });
 };
 
+export const hasUserPurchasedProduct = async (productId: number, userId: number) => {
+  const purchase = await prisma.transakcja.findFirst({
+    where: {
+      id_uzytkownika: userId,
+      stan: "ZREALIZOWANE",
+      przedmioty: {
+        some: {
+          id_przedmiotu: productId,
+        },
+      },
+    },
+  });
+  return !!purchase;
+};
+
 export const getFeaturedProducts = async (limit: number = 5) => {
   return prisma.przedmioty.findMany({
     where: {
       aktywny: true,
-      ilosc: { gt: 0 },
       cena_prom: { not: null }
     },
     include: { kategoria: true },

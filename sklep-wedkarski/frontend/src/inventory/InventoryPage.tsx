@@ -16,6 +16,7 @@ import InventoryStats from "./components/InventoryStats";
 import InventoryTable from "./components/InventoryTable";
 import InventoryCreateForm from "./components/InventoryCreateForm";
 import InventoryEditModal from "./components/InventoryEditModal";
+import { toast } from "react-toastify";
 
 type InventoryPageProps = {
   currentUser: User | null;
@@ -35,8 +36,6 @@ export default function InventoryPage({ currentUser }: InventoryPageProps) {
   const [products, setProducts] = useState<InventoryProduct[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const [inventoryError, setInventoryError] = useState<string | null>(null);
-  const [inventoryNotice, setInventoryNotice] = useState<string | null>(null);
 
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<number | "all">("all");
@@ -52,9 +51,10 @@ export default function InventoryPage({ currentUser }: InventoryPageProps) {
   const isManager = currentUser?.roleId === 2 || currentUser?.roleId === 3;
   const isAdmin = currentUser?.roleId === 3;
 
-  const loadData = async () => {
-    setLoading(true);
-    setInventoryError(null);
+  const loadData = async (showLoader = true) => {
+    if (showLoader) {
+      setLoading(true);
+    }
 
     try {
       const [inventoryProducts, categoryList] = await Promise.all([
@@ -62,11 +62,14 @@ export default function InventoryPage({ currentUser }: InventoryPageProps) {
         fetchCategories(),
       ]);
       setProducts(inventoryProducts);
+      setStockDrafts({});
       setCategories(categoryList);
     } catch (err) {
-      setInventoryError(parseError(err, "Nie udało się pobrać stanu magazynowego."));
+      toast.error(parseError(err, "Nie udało się pobrać stanu magazynowego."));
     } finally {
-      setLoading(false);
+      if (showLoader) {
+        setLoading(false);
+      }
     }
   };
 
@@ -79,21 +82,12 @@ export default function InventoryPage({ currentUser }: InventoryPageProps) {
   }, [isManager]);
 
   useEffect(() => {
-    if (!inventoryNotice) {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => setInventoryNotice(null), 4000);
-    return () => window.clearTimeout(timeoutId);
-  }, [inventoryNotice]);
-
-  useEffect(() => {
     if (!isManager) {
       return;
     }
 
     const handleInventoryChange = () => {
-      loadData().catch(() => undefined);
+      loadData(false).catch(() => undefined);
     };
 
     window.addEventListener("inventory:changed", handleInventoryChange);
@@ -143,13 +137,12 @@ export default function InventoryPage({ currentUser }: InventoryPageProps) {
 
   const runRowAction = async (id: number, action: () => Promise<void>) => {
     setWorkingIds((prev) => ({ ...prev, [id]: true }));
-    setInventoryError(null);
 
     try {
       await action();
-      await loadData();
+      await loadData(false);
     } catch (err) {
-      setInventoryError(parseError(err, "Nie udało się wykonać akcji."));
+      toast.error(parseError(err, "Nie udało się wykonać akcji."));
     } finally {
       setWorkingIds((prev) => ({ ...prev, [id]: false }));
     }
@@ -158,8 +151,7 @@ export default function InventoryPage({ currentUser }: InventoryPageProps) {
   const handleMarkAsShortage = async (product: InventoryProduct) => {
     await runRowAction(product.id_przedmiotu, async () => {
       await updateInventoryStock(product.id_przedmiotu, 0);
-      setInventoryNotice(`Produkt \"${product.nazwa}\" oznaczono jako brak.`);
-      window.dispatchEvent(new Event("inventory:changed"));
+      toast.success(`Produkt \"${product.nazwa}\" oznaczono jako brak.`);
     });
   };
 
@@ -168,39 +160,41 @@ export default function InventoryPage({ currentUser }: InventoryPageProps) {
     const nextStock = Number(draftValue);
 
     if (!Number.isFinite(nextStock) || nextStock < 0) {
-      setInventoryError("Stan magazynowy musi być liczbą całkowitą nieujemną.");
+      toast.error("Stan magazynowy musi być liczbą całkowitą nieujemną.");
+      return;
+    }
+
+    const normalizedStock = Math.floor(nextStock);
+    if (normalizedStock === product.ilosc) {
+      setStockDrafts((prev) => {
+        const next = { ...prev };
+        delete next[product.id_przedmiotu];
+        return next;
+      });
       return;
     }
 
     await runRowAction(product.id_przedmiotu, async () => {
-      await updateInventoryStock(product.id_przedmiotu, Math.floor(nextStock));
-      setInventoryNotice(`Stan produktu \"${product.nazwa}\" został zapisany.`);
-      window.dispatchEvent(new Event("inventory:changed"));
+      await updateInventoryStock(product.id_przedmiotu, normalizedStock);
+      toast.success(`Stan produktu \"${product.nazwa}\" został zapisany.`);
     });
   };
 
   const handleDeleteProduct = async (product: InventoryProduct) => {
-    const confirmed = window.confirm(`Usunąć ofertę \"${product.nazwa}\" ze strony?`);
-    if (!confirmed) {
-      return;
-    }
-
     await runRowAction(product.id_przedmiotu, async () => {
       await deleteInventoryProduct(product.id_przedmiotu);
-      setInventoryNotice(`Oferta \"${product.nazwa}\" została usunięta.`);
-      window.dispatchEvent(new Event("inventory:changed"));
+      toast.success(`Oferta \"${product.nazwa}\" została usunięta.`);
     });
   };
 
   const handleActivateProduct = async (product: InventoryProduct) => {
     await runRowAction(product.id_przedmiotu, async () => {
       await setInventoryProductVisibility(product.id_przedmiotu, true);
-      setInventoryNotice(`Produkt \"${product.nazwa}\" został aktywowany.`);
-      window.dispatchEvent(new Event("inventory:changed"));
+      toast.success(`Produkt \"${product.nazwa}\" został aktywowany.`);
     });
   };
 
-  const handleNotice = (message: string) => setInventoryNotice(message);
+  const handleNotice = (message: string) => toast.success(message);
 
   if (!currentUser) {
     return <Navigate to="/login" replace />;
@@ -237,24 +231,9 @@ export default function InventoryPage({ currentUser }: InventoryPageProps) {
                 Raporty
               </NavLink>
             )}
-            <button
-              type="button"
-              onClick={() => loadData()}
-              className="rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
-            >
-              Odśwież dane
-            </button>
           </div>
         </div>
       </section>
-
-      {inventoryError && (
-        <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{inventoryError}</p>
-      )}
-
-      {inventoryNotice && (
-        <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{inventoryNotice}</p>
-      )}
 
       {isManager && <InventoryCreateForm onCreated={() => loadData().catch(() => undefined)} />}
 

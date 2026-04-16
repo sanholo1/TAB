@@ -1,7 +1,8 @@
-﻿import React from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { getCart } from "../products/products.api";
 import type { User } from "../auth/auth.types";
-import { X } from "lucide-react";
+import { X, ShoppingCart } from "lucide-react";
 
 interface HeaderProps {
   user: User | null;
@@ -18,6 +19,24 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout, search, setSearch, onSe
   const navigate = useNavigate();
   const currentParams = new URLSearchParams(location.search);
   const activeSearch = currentParams.get("search");
+  const [cartCount, setCartCount] = useState(0);
+
+  const refreshCartCount = async () => {
+    try {
+      const token = localStorage.getItem("auth_token");
+      if (token) { // logged user
+          const userCart = await getCart(); 
+          const total = userCart.reduce((acc: number, item: any) => acc + item.ilosc, 0);
+          setCartCount(total);
+        } else { // guest
+        const guestCart = JSON.parse(localStorage.getItem("Guest_cart") || "[]");
+        const total = guestCart.reduce((acc: number, item: any) => acc + item.ilosc, 0);
+        setCartCount(total);
+        }
+      }catch (err) {
+          console.error("Błąd pobierania koszyka z bazy:", err);
+    }
+  };
 
   const handleClearSearch = () => {
     setSearch("");
@@ -25,15 +44,30 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout, search, setSearch, onSe
     navigate(`/products?${currentParams.toString()}`); // <- does not erase other filters
   };
 
+  useEffect(() => {
+    refreshCartCount();
+    // localStorage
+    window.addEventListener("storage", refreshCartCount);
+    // custom event
+    window.addEventListener("cart-updated", refreshCartCount);
+
+    return () => {
+      window.removeEventListener("storage", refreshCartCount);
+      window.removeEventListener("cart-updated", refreshCartCount);
+    };
+  }, [user]);
+
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-slate-50/90 backdrop-blur-xl shadow-sm">
       <div className="mx-auto flex flex-wrap items-center gap-4 px-4 py-4 max-w-7xl">
         
-        <div className="flex items-center gap-3">
-          <NavLink to="/" className="text-xl font-semibold tracking-tight text-sky-900">
-            Sklep Wędkarski
+          <NavLink to="/" className="flex items-center">
+            <img 
+              src="/logo.png" 
+              alt="Gruba Ryba - Sklep Wędkarski" 
+              className="h-24 w-auto object-contain transition-transform hover:scale-105" 
+            />
           </NavLink>
-        </div>
 
         <nav className="flex flex-wrap items-center gap-2">
           <NavLink
@@ -128,6 +162,14 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout, search, setSearch, onSe
               </NavLink>
             </>
           )}
+        <NavLink to="/cart" className="relative flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-300 bg-white text-slate-700 transition hover:border-sky-500 hover:text-sky-700 hover:shadow-md">
+          <ShoppingCart className="h-6 w-6" />
+          {cartCount > 0 && (
+              <span className="absolute -right-2 -top-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-sky-700 px-1 text-[12px] font-bold text-white shadow-sm ring-2 ring-white">
+                {cartCount}
+              </span>
+            )}
+        </NavLink>
         </div>
       </div>
     </header>
