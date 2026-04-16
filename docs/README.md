@@ -1,91 +1,127 @@
-# Sklep Wędkarski 
+# Sklep Wędkarski - dokumentacja projektu
 
-## Jak uruchomić projekt lokalnie
+## Krótki opis
+Sklep Wędkarski to aplikacja webowa do obsługi sklepu internetowego z podziałem na role użytkowników. Projekt składa się z warstwy frontendowej (React + Vite) oraz backendowego API (Express + Prisma + MySQL).
 
-Musisz uruchomić dwa terminale i odpalić.
+Zakres obejmuje m.in. katalog produktów, koszyk, składanie zamówień, obsługę kont użytkowników, panel magazynowy oraz raporty sprzedażowe i opinii.
 
-**Terminal 1 (Backend - API):**
+## Technologie
+
+| Warstwa | Technologie |
+|---|---|
+| Frontend | React 19, TypeScript, Vite, React Router, Axios, Tailwind CSS |
+| Backend | Node.js, Express 5, TypeScript, Prisma ORM, Zod, JWT, Multer |
+| Baza danych | MySQL 8 |
+| Narzędzia uruchomieniowe | Docker Compose, npm |
+
+## Główne funkcjonalności
+
+### Moduły klienckie:
+- Rejestracja i logowanie użytkownika.
+- Przeglądanie produktów i kategorii.
+- Koszyk zakupowy oraz składanie zamówień.
+- Obsługa zamówień gościa.
+- Profil użytkownika.
+
+### Moduły administracyjne i sprzedażowe:
+- Zarządzanie asortymentem (`/inventory`):
+  - dodawanie i edycja produktów,
+  - aktywacja/dezaktywacja oferty,
+  - aktualizacja stanów magazynowych.
+- Zarządzanie promocjami.
+- Generowanie raportów sprzedażowych i opini.
+- Kontrola uprawnień oparta o role (Klient, Sprzedawca, Administrator).
+
+## Połączenie z bazą danych
+
+### Konfiguracja
+Backend łączy się z MySQL przez Prisma, wykorzystując zmienną środowiskową `DATABASE_URL`.
+
+Przykładowa konfiguracja (plik `.env` backendu):
+
+```env
+DATABASE_URL="mysql://root:root@localhost:3307/sklep_wedkarski"
+JWT_SECRET="12345678901234567890123456789012"
+JWT_EXPIRES_IN="7d"
+PORT="3000"
+```
+
+### Jak to działa ?
+- Schemat danych jest definiowany w `backend/prisma/schema.prisma`.
+- Prisma Client mapuje modele aplikacji na tabele MySQL.
+- Migracje i seed inicjalizują strukturę oraz dane testowe
+- Baza uruchamiana jest kontenerem Docker na porcie hosta `3307`.
+
+## Instalacja i uruchomienie
+
+### Wymagania:
+- Node.js
+- npm
+- Docker
+
+### 1) Uruchom bazę danych
+W katalogu projektu:
+
 ```bash
-cd sklep-wedkarski/backend
+cd sklep-wedkarski
+docker compose up -d
+```
+
+### 2) Konfiguracja backendu
+
+Skopiuj konfigurację środowiska:
+
+```bash
+# Linux/macOS
+cp backend/.env.example backend/.env
+
+# Windows (PowerShell)
+Copy-Item backend/.env.example backend/.env
+```
+
+```bash
+cd backend
 npm install
+npm run prisma:generate
+npm run prisma:push
+npm run prisma:seed
 npm run dev
 ```
+
 Backend domyślnie: `http://localhost:3000`
 
-**Terminal 2 (Frontend - Aplikacja kliencka):**
+### 3) Konfiguracja frontendu
+
 ```bash
-cd sklep-wedkarski/frontend
+cd ../frontend
 npm install
 npm run dev
 ```
+
 Frontend domyślnie: `http://localhost:5173`
 
----
+## Opis generowanych raportów
 
-## Baza danych i dane testowe
+| Raport | Opis biznesowy | Parametry | Wynik i metryki |
+|---|---|---|---|
+| Raport sprzedaży | Zestawienie sprzedaży z podziałem dziennym i kategoriami. Raport uwzględnia wyłącznie zamówienia zrealizowane. | Data od, data do, kategoria | **Widok podsumowania:** łączna liczba sprzedanych sztuk, łączny zysk, minimalny zysk dnia, maksymalny zysk dnia.    **Widok szczegółowy:** nazwa produktu, ilość, cena sprzedaży, cena hurtowa, marża %, zysk. |
+| Raport ocen produktów | Zestawienie jakości oferty na podstawie średniej oceny produktów i liczby opinii. | Zakres oceny od-do (0-5) | Lista produktów spełniających filtr: nazwa produktu, kategoria, średnia ocena, liczba opinii. |
+  
+## Dane testowe
 
-Jak chcecie dane testowe, to w terminalu wpiszcie:
-```bash
-cd sklep-wedkarski/backend
-npm run prisma:seed
-```
-Będziecie mieli testowego użytkownika, produkt, kategorię, koszyk i role.
-
-## Konta testowe po seedzie
-
-Haslo dla wszystkich kont: Tajne oczywiście ;)
+Po uruchomieniu seeda dostępne są konta testowe:
 
 - Klient: `klient@sklep.pl`
 - Sprzedawca: `sprzedawca@sklep.pl`
 - Administrator: `admin@sklep.pl`
 
----
-  
-## Struktura
+Hasło dla kont testowych: `haslo123`
 
-### Backend (Katalog `backend/`)
-Zbudowany w architekturze modularnej (**Routes -> Services -> Prisma Client**). System wspiera pełną autoryzację JWT oraz opcję zakupów dla gości.
+## Struktura projektu
 
-### Frontend (Katalog `frontend/`)
-Zbudowany w oparciu o komponenty i foldery funkcyjne. W pełni zintegrowany z nowym backendem.
-Struktura plików — ludzie z frontu też możecie ustawić pod siebie.
-W produktach jest zrobione API, typy, strona główna produktów i strona detalu.
-Jest tam surowy szkielet graficzny, trzeba go ładniej zrobić. Dodać wstawianie opinii, dodawanie do koszyka, filtrowanie cen. 
-
-## Postępy prac:
-
-### Magazyn:
-- Dodano panel magazynowy w frontendzie (`/inventory`).
-- Dodano filtrowanie, sortowanie i akcje na produktach (dodawanie, edycja, aktywacja/dezaktywacja, oznaczanie brakow, aktualizacja stanu, usuwanie oferty).
-- Uprawnienia sa rozdzielone po rolach (Sprzedawca / Administrator).
-  
-### NIEAKTUALNE POSTĘPY 04.04.2026
-1. **`products.api.ts`** – Pełna integracja z backendem. Funkcje **`addProductReview(id, data)`** oraz **`addToCart(id, ilosc)`** działają z nową strukturą bazy.
-2. **`Autoryzacja`** – Mamy gotowy moduł rejestracji i logowania na backendzie. 
-3. **`Filtrowanie`** – Na stronie produktów działa już filtrowanie po cenie i kategoriach.
-4. **`Koszyk`** – System automatycznie przypisuje zakupy do zalogowanego usera lub gościa (ID=1).
-   
-## Dla Pawła
-### Twoje TODO:
-- [ ] **Design**: Zrób to ładnie, usuń ramki, dodaj kolory, obrazki, poprawne marginesy.
-- [ ] **Opinie**: Na stronie `ProductDetailPage.tsx` dodaj prosty formularz na ocenę i komentarz. Podepnij pod niego przygotowaną funkcję `addProductReview()`.
-- [ ] **Koszyk**: Pod przycisk "Dodaj do koszyka" podepnij nową funkcję `addToCart()`. (System będzie wrzucał itemy na sztywno do konta niezalgowanego uzytkownika lub do zalogowanego uzytkwnika).
-- [ ] **Koszyk gościa (ważne)**: Aktualnie gość nie jest w stanie nic dodać do koszyka, kończy się to błędem. Trzeba zaimplementować po stronie frontu koszyk gościa, który będzie się przenosił do koszyka użytkownika po zalogowaniu. Wszystkie potrzebne funkcje powinny być dostępne. Konto gościa może już składać zamówienia po zalogowaniu na konto `gosc@sklep.pl`, ale prawdziwy koszyk anonimowy nadal nie jest gotowy.
-- [ ] **Co Chcesz**: Zrób to co chcesz, pisz dc jak coś nie trybi.
-- [ ] 
-
-### API dla frontu
-- `POST /orders/guest` pozwala złożyć zamówienie bez tokena. Payload:
-```json
-{
-  "kraj": "Polska",
-  "miasto": "Warszawa",
-  "kod_pocztowy": "00-001",
-  "ulica": "Prosta",
-  "nr_domu": "10A",
-  "items": [
-    { "id_przedmiotu": 1, "ilosc": 2 }
-  ]
-}
+```text
+sklep-wedkarski/
+|- backend/    # API, logika biznesowa, Prisma, migracje
+|- frontend/   # Aplikacja React
+|- docker-compose.yml  # Lokalna baza MySQL
 ```
-- Endpoint zapisuje zamówienie na techniczne konto gościa i sam weryfikuje dostępność produktów oraz sumuje duplikaty `id_przedmiotu`.
